@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from backend.app.core.exceptions import ValidationError
+from backend.app.core.errors import ValidationAppError as ValidationError
 
 # Hard caps. Per-file cap is generous for a CV; total request cap stops
 # someone shipping two near-max files.

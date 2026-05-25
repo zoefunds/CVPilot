@@ -10,6 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
+from backend.app.core.upload_validation import sniff as _sniff_upload, assert_total_size as _assert_total_upload_size
 from backend.app.core.errors import (
     AppError,
     ForbiddenError,
@@ -124,6 +125,10 @@ def create_application(
     try:
         cv_bytes = _validate_upload(cv, "cv")
         cl_bytes = _validate_upload(cover_letter, "cover_letter")
+        _sniff_upload(cv_bytes, field="cv")
+        _sniff_upload(cl_bytes, field="cover_letter")
+        _assert_total_upload_size(cv_bytes, cl_bytes)
+
     except ValidationAppError:
         applications_submitted_total.labels(result="rejected_validation").inc()
         raise

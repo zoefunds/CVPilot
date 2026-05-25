@@ -22,7 +22,7 @@ kill_timeout = "30s"
   api = "uvicorn backend.app.main:app --host 0.0.0.0 --port 8080 --workers 2 --proxy-headers --forwarded-allow-ips=*"
 
 [deploy]
-  release_command = "alembic upgrade head"
+  release_command = "alembic -c backend/alembic.ini upgrade head"
   strategy = "rolling"
 
 [[services]]

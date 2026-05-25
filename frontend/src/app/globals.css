@@ -1,0 +1,59 @@
+/*
+  CVPilot global styles. Tailwind v4.
+  Brand color: #efece4
+*/
+
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #efece4;
+  --color-brand-soft: #f6f4ee;
+  --color-ink: #1a1814;
+  --color-ink-soft: #3a342c;
+  --color-accent: #2b4f3a;
+  --color-accent-soft: #cfd9d0;
+  --color-line: #d9d5c8;
+  --font-display: ui-serif, Georgia, "Times New Roman", serif;
+}
+
+:root {
+  --brand: #efece4;
+  --brand-soft: #f6f4ee;
+  --ink: #1a1814;
+  --ink-soft: #3a342c;
+  --accent: #2b4f3a;
+  --accent-soft: #cfd9d0;
+  --line: #d9d5c8;
+}
+
+html,
+body {
+  background-color: var(--brand);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent);
+  color: var(--brand);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+.bg_paper {
+  background-color: var(--brand);
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(0, 0, 0, 0.035) 1px,
+    transparent 0
+  );
+  background-size: 18px 18px;
+}

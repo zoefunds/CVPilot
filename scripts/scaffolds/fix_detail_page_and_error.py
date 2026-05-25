@@ -1,4 +1,21 @@
-'use client';
+"""
+Fix two longstanding bugs:
+  1. frontend/src/app/dashboard/applications/[id]/page.tsx
+     The Share-verification-link button was injected into the wrong scope
+     (referencing ev/onCopy from outside EvaluationView). Rewrite the file
+     cleanly with the Share button correctly placed inside EvaluationView.
+  2. frontend/src/app/error.tsx
+     Nested error.tsx must NOT render <html><body>; that is the job of
+     global-error.tsx or the root layout. Removing the wrappers fixes the
+     'body cannot contain a nested html' hydration warning.
+"""
+from pathlib import Path
+
+ROOT = Path("/Users/macbook/CVPilot")
+FILES: dict[str, str] = {}
+
+
+FILES["frontend/src/app/dashboard/applications/[id]/page.tsx"] = '''\'use client\';
 
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
@@ -17,7 +34,7 @@ import type {
 function shortHash(h: string | null | undefined): string {
   if (!h) return '';
   if (h.length <= 14) return h;
-  return `${h.slice(0, 8)}…${h.slice(-6)}`;
+  return `${h.slice(0, 8)}\u2026${h.slice(-6)}`;
 }
 
 export default function ApplicationDetailPage() {
@@ -133,7 +150,7 @@ export default function ApplicationDetailPage() {
         <Container className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
           <div className="flex min-w-0 items-center gap-3">
             <Link href="/dashboard" className="text-[#3a342c] hover:text-[#1a1814]">
-              ← Dashboard
+              \u2190 Dashboard
             </Link>
             <span className="hidden text-[#3a342c]/40 sm:inline">|</span>
             <span className="truncate font-medium text-[#1a1814]">
@@ -226,7 +243,7 @@ function EvaluationView({
               Overall
             </p>
             <p className="mt-2 font-serif text-7xl text-[#1a1814] sm:text-8xl">
-              {ev.overall_score ?? '—'}
+              {ev.overall_score ?? '\u2014'}
             </p>
             <p className="text-xs text-[#3a342c]/70">/ 100</p>
 
@@ -237,7 +254,7 @@ function EvaluationView({
                 </span>
               )}
               <span className="rounded-full border border-[#1a1814]/15 bg-white/70 px-3 py-1 text-xs text-[#1a1814]">
-                Backend: {ev.backend || '—'}
+                Backend: {ev.backend || '\u2014'}
               </span>
             </div>
 
@@ -259,23 +276,6 @@ function EvaluationView({
                     hash {shortHash(ev.content_hash)}
                   </span>
                 )}
-              </button>
-            ) : ev.content_hash && ev.contract_address ? (
-              <button
-                type="button"
-                onClick={() => onCopy(ev.content_hash, 'Content hash')}
-                className="mt-5 inline-flex flex-col items-start rounded-2xl border border-[#2b4f3a]/30 bg-[#2b4f3a]/10 px-4 py-3 text-left transition-colors hover:bg-[#2b4f3a]/20"
-                title="This evaluation is stored on-chain under this content hash (cached, no new transaction was written because the inputs were already evaluated). Click to copy."
-              >
-                <span className="text-[10px] uppercase tracking-[0.18em] text-[#2b4f3a]">
-                  Verified on StudioNet · cached
-                </span>
-                <span className="mt-1 font-mono text-xs text-[#2b4f3a]">
-                  hash {shortHash(ev.content_hash)}
-                </span>
-                <span className="mt-0.5 text-[10px] text-[#2b4f3a]/70">
-                  Same inputs already evaluated on-chain
-                </span>
               </button>
             ) : (
               <span className="mt-5 inline-block rounded-2xl border border-[#1a1814]/15 bg-white/60 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-[#3a342c]/80">
@@ -477,7 +477,7 @@ function EvaluationView({
             <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Content hash</p>
             <div className="mt-2 flex items-center justify-between gap-3">
               <p className="break-all font-mono text-xs text-[#1a1814]">
-                {ev.content_hash || '—'}
+                {ev.content_hash || '\u2014'}
               </p>
               {ev.content_hash && (
                 <button
@@ -494,7 +494,7 @@ function EvaluationView({
             <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Contract address</p>
             <div className="mt-2 flex items-center justify-between gap-3">
               <p className="break-all font-mono text-xs text-[#1a1814]">
-                {ev.contract_address || '—'}
+                {ev.contract_address || '\u2014'}
               </p>
               {ev.contract_address && (
                 <button
@@ -543,9 +543,146 @@ function FileSummary({
         {file.original_filename}
       </p>
       <p className="mt-1 text-xs text-[#3a342c]/70">
-        {(file.detected_kind || 'unknown').toUpperCase()} ·{' '}
+        {(file.detected_kind || 'unknown').toUpperCase()} \u00b7{' '}
         {(file.byte_size / 1024).toFixed(1)} KB
       </p>
     </div>
   );
 }
+'''
+
+
+# Nested error boundary must not render its own <html><body>.
+FILES["frontend/src/app/error.tsx"] = '''\'use client\';
+
+import Link from 'next/link';
+import { useEffect } from 'react';
+import { Container } from '@/components/ui/Container';
+import { appName } from '@/lib/brand';
+
+export default function NestedError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+     
+    console.error('App error boundary caught:', error);
+  }, [error]);
+
+  return (
+    <main className="min-h-screen">
+      <header className="border-b border-[#d9d5c8]">
+        <Container className="flex h-16 items-center justify-between">
+          <Link href="/" className="font-serif text-2xl">
+            {appName}
+          </Link>
+        </Container>
+      </header>
+      <Container className="py-24 sm:py-32">
+        <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">
+          Unexpected error
+        </p>
+        <h1 className="mt-3 font-serif text-6xl">
+          Something went sideways.
+        </h1>
+        <p className="mt-4 max-w-xl text-[#3a342c]">
+          We logged the failure. You can try again, or head back home.
+          If this keeps happening, please reach out.
+        </p>
+        <div className="mt-10 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={reset}
+            className="inline-flex items-center justify-center rounded-full bg-[#1a1814] px-6 py-3 text-sm font-medium text-[#efece4] hover:bg-[#3a342c]"
+          >
+            Try again
+          </button>
+          <Link
+            href="/dashboard"
+            className="inline-flex items-center justify-center rounded-full border border-[#1a1814]/30 px-6 py-3 text-sm font-medium text-[#1a1814] hover:bg-[#1a1814]/5"
+          >
+            Back to dashboard
+          </Link>
+        </div>
+      </Container>
+    </main>
+  );
+}
+'''
+
+
+# (Optional) bonus: a proper global-error.tsx so framework-level crashes still
+# have a branded fallback. global-error renders its own html/body.
+FILES["frontend/src/app/global-error.tsx"] = '''\'use client\';
+
+import { useEffect } from 'react';
+
+export default function GlobalError({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string };
+  reset: () => void;
+}) {
+  useEffect(() => {
+     
+    console.error('Global error boundary caught:', error);
+  }, [error]);
+
+  return (
+    <html lang="en">
+      <body
+        style={{
+          fontFamily: 'ui-sans-serif, system-ui',
+          background: '#efece4',
+          color: '#1a1814',
+          minHeight: '100vh',
+          margin: 0,
+          padding: '48px',
+        }}
+      >
+        <p style={{ textTransform: 'uppercase', letterSpacing: '0.18em', fontSize: 12 }}>
+          Fatal error
+        </p>
+        <h1 style={{ fontFamily: 'ui-serif, Georgia, serif', fontSize: 56, marginTop: 12 }}>
+          Something went very sideways.
+        </h1>
+        <p style={{ maxWidth: 540, marginTop: 12 }}>
+          The application could not render at all. Reloading may help.
+        </p>
+        <button
+          type="button"
+          onClick={reset}
+          style={{
+            marginTop: 32,
+            background: '#1a1814',
+            color: '#efece4',
+            border: 0,
+            borderRadius: 999,
+            padding: '12px 24px',
+            cursor: 'pointer',
+          }}
+        >
+          Try again
+        </button>
+      </body>
+    </html>
+  );
+}
+'''
+
+
+def write(rel: str, content: str) -> None:
+    p = ROOT / rel
+    p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(content, encoding="utf-8")
+    print(f"  wrote {rel}")
+
+
+for rel, content in FILES.items():
+    write(rel, content)
+
+print("\nDetail page + error boundary fixed.")

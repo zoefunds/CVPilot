@@ -156,9 +156,24 @@ def list_applications(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    rows = db.scalars(
-        select(Application).where(Application.user_id == current_user.id).order_by(Application.created_at.desc())
-    ).all()
+    """
+    Dashboard list: show applications that produced a real on-chain write,
+    plus in-progress and failed ones. Hide completed evaluations that have
+    no contract_tx_hash (cache hits or stub-only) so the dashboard reflects
+    real chain activity.
+    """
+    from backend.app.models.evaluation import Evaluation
+
+    rows = db.execute(
+        select(Application)
+        .outerjoin(Evaluation, Evaluation.application_id == Application.id)
+        .where(Application.user_id == current_user.id)
+        .where(
+            (Application.status != "complete")
+            | (Evaluation.contract_tx_hash.isnot(None))
+        )
+        .order_by(Application.created_at.desc())
+    ).scalars().unique().all()
     return [ApplicationListItem.model_validate(r) for r in rows]
 
 

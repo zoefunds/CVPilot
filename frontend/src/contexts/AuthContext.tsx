@@ -6,11 +6,13 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import { useRouter } from 'next/navigation';
 import { ApiError, authApi } from '@/lib/api';
 import { tokenStorage } from '@/lib/authStorage';
+import { useToast } from '@/contexts/ToastContext';
 import type { UserPublic } from '@/lib/types';
 
 interface AuthState {
@@ -27,11 +29,23 @@ const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
+  const { push } = useToast();
   const [user, setUser] = useState<UserPublic | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  // Remember whether the user was previously authenticated so we can show a
+  // "session expired" toast on involuntary sign-outs (but not on first load).
+  const wasAuthenticated = useRef(false);
 
   const loadMe = useCallback(async () => {
     if (!tokenStorage.getAccess()) {
+      if (wasAuthenticated.current) {
+        push({
+          tone: 'info',
+          title: 'Session expired.',
+          message: 'Sign in again to continue.',
+        });
+        wasAuthenticated.current = false;
+      }
       setUser(null);
       setIsLoading(false);
       return;
@@ -39,15 +53,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me = await authApi.me();
       setUser(me);
+      wasAuthenticated.current = true;
     } catch (e) {
-      if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+      const expired = e instanceof ApiError && (e.status === 401 || e.status === 403);
+      if (expired) {
         tokenStorage.clear();
+        if (wasAuthenticated.current) {
+          push({
+            tone: 'info',
+            title: 'Session expired.',
+            message: 'Sign in again to continue.',
+          });
+        }
+        wasAuthenticated.current = false;
       }
       setUser(null);
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [push]);
 
   useEffect(() => {
     void loadMe();
@@ -58,6 +82,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     tokenStorage.set(tokens.access_token, tokens.refresh_token);
     const me = await authApi.me();
     setUser(me);
+    wasAuthenticated.current = true;
   }, []);
 
   const signUp = useCallback(
@@ -68,6 +93,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       tokenStorage.set(tokens.access_token, tokens.refresh_token);
       const me = await authApi.me();
       setUser(me);
+      wasAuthenticated.current = true;
     },
     [],
   );
@@ -75,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signOut = useCallback(() => {
     tokenStorage.clear();
     setUser(null);
+    wasAuthenticated.current = false;
     router.push('/');
   }, [router]);
 

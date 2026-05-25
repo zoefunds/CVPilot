@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
+import { WalletBalanceChip } from '@/components/dashboard/WalletBalanceChip';
 import { appName } from '@/lib/brand';
 
 export function DashboardShell({ children }: { children: React.ReactNode }) {
@@ -16,7 +17,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard" className="font-serif text-2xl">
             {appName}
           </Link>
-          <nav className="flex items-center gap-3 text-sm sm:gap-5">
+          <nav className="flex items-center gap-3 text-sm sm:gap-4">
             <Link
               href="/dashboard"
               className="hidden text-[#3a342c] hover:text-[#1a1814] sm:inline"
@@ -44,9 +45,7 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
                 Admin
               </Link>
             )}
-            <span className="hidden max-w-[16ch] truncate text-[#3a342c]/60 lg:inline">
-              {user?.email}
-            </span>
+            <WalletBalanceChip />
             <button
               type="button"
               onClick={() => {

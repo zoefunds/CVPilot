@@ -39,7 +39,7 @@ class Settings(BaseSettings):
 
     jwt_secret: str = Field(default="change-me", alias="JWT_SECRET")
     jwt_algorithm: str = Field(default="HS256", alias="JWT_ALGORITHM")
-    jwt_access_token_expires_min: int = Field(default=30, alias="JWT_ACCESS_TOKEN_EXPIRES_MIN")
+    jwt_access_token_expires_min: int = Field(default=720, alias="JWT_ACCESS_TOKEN_EXPIRES_MIN")
     jwt_refresh_token_expires_days: int = Field(default=7, alias="JWT_REFRESH_TOKEN_EXPIRES_DAYS")
 
     storage_backend: Literal["local", "s3"] = Field(default="local", alias="STORAGE_BACKEND")

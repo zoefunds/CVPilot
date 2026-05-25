@@ -81,10 +81,15 @@ def test_admin_can_list_users(client) -> None:
     assert any(u.get("is_superuser") is True for u in users)
 
 
-def test_admin_can_list_applications_empty(client) -> None:
+def test_admin_can_list_applications_for_user(client) -> None:
+    """Filter by the freshly-registered test user's id; that user must have
+    zero applications even when the global list has rows from real users."""
     _, token = _register_and_token(client, promote=True)
+    me = client.get(
+        "/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"}
+    ).json()
     r = client.get(
-        "/api/v1/admin/applications",
+        f"/api/v1/admin/applications?user_id={me['id']}",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert r.status_code == 200, r.text

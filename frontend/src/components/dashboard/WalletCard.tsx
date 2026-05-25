@@ -1,27 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ApiError, walletApi } from '@/lib/api';
 import { useToast } from '@/contexts/ToastContext';
-import type { WalletPublic } from '@/lib/types';
+import { LOW_BALANCE_WEI, useWallet } from '@/contexts/WalletContext';
 
 export function WalletCard() {
-  const [wallet, setWallet] = useState<WalletPublic | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { wallet, isLoading, error, refresh } = useWallet();
   const [revealed, setRevealed] = useState<string | null>(null);
   const [exporting, setExporting] = useState(false);
   const { push } = useToast();
-
-  async function load() {
-    try {
-      const w = await walletApi.get();
-      setWallet(w);
-    } catch (e) {
-      setError(e instanceof ApiError ? e.message : 'Could not load wallet.');
-    }
-  }
-
-  useEffect(() => { void load(); }, []);
 
   async function copy(text: string, label: string) {
     try {
@@ -54,7 +42,7 @@ export function WalletCard() {
     }
   }
 
-  if (error) {
+  if (error && !wallet) {
     return (
       <div className="rounded-2xl border border-[#9b2226]/30 bg-[#9b2226]/10 p-5 text-sm text-[#9b2226]">
         {error}
@@ -70,7 +58,7 @@ export function WalletCard() {
     );
   }
 
-  const lowBalance = wallet.balance_wei < 500_000_000_000_000_000; // 0.5 GEN
+  const lowBalance = wallet.balance_wei < LOW_BALANCE_WEI;
 
   return (
     <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-6">
@@ -113,10 +101,11 @@ export function WalletCard() {
           </p>
           <button
             type="button"
-            onClick={load}
-            className="mt-3 rounded-full border border-[#1a1814]/20 px-3 py-1 text-xs hover:bg-[#1a1814]/5"
+            onClick={() => void refresh()}
+            disabled={isLoading}
+            className="mt-3 rounded-full border border-[#1a1814]/20 px-3 py-1 text-xs hover:bg-[#1a1814]/5 disabled:opacity-60"
           >
-            Refresh
+            {isLoading ? 'Refreshing…' : 'Refresh'}
           </button>
           {lowBalance && (
             <p className="mt-3 rounded-lg bg-[#a35f1f]/10 px-2.5 py-1.5 text-[11px] text-[#a35f1f]">

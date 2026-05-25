@@ -1,12 +1,12 @@
 """
 FastAPI application factory.
-Wires logging, middleware, CORS, error handlers, rate limiter, and routers.
 """
 
 from __future__ import annotations
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from prometheus_fastapi_instrumentator import Instrumentator
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -17,6 +17,7 @@ from backend.app.core.errors import register_exception_handlers
 from backend.app.core.logging import configure_logging, get_logger
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.middleware.request_id import RequestIDMiddleware
+from backend.app.middleware.request_log import RequestLogMiddleware
 from backend.app.routes import health
 
 
@@ -33,13 +34,19 @@ def create_app() -> FastAPI:
         openapi_url="/openapi.json" if not settings.is_production else None,
     )
 
-    # Rate limiter
+    Instrumentator(
+        should_group_status_codes=True,
+        should_ignore_untemplated=True,
+        excluded_handlers=["/metrics", "/healthz", "/livez"],
+    ).instrument(app).expose(app, endpoint="/metrics", include_in_schema=False)
+
     app.state.limiter = limiter
     app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
     app.add_middleware(SlowAPIMiddleware)
 
-    # Other middleware
+    app.add_middleware(RequestLogMiddleware)
     app.add_middleware(RequestIDMiddleware)
+
     app.add_middleware(
         CORSMiddleware,
         allow_origins=[settings.app_frontend_origin],
@@ -49,16 +56,21 @@ def create_app() -> FastAPI:
         expose_headers=["X-Request-ID"],
     )
 
-    # Errors
     register_exception_handlers(app)
 
-    # Routes
     app.include_router(health.router)
     app.include_router(api_router)
 
     @app.get("/", tags=["root"])
     def root() -> dict:
-        return {"app": settings.app_name, "version": "0.1.0", "docs": "/docs"}
+        return {
+            "app": settings.app_name,
+            "version": "0.1.0",
+            "docs": "/docs",
+            "metrics": "/metrics",
+            "health": "/healthz",
+            "ready": "/readyz",
+        }
 
     log.info("app_started", env=settings.app_env, debug=settings.app_debug)
     return app

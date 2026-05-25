@@ -1,10 +1,10 @@
 """
-Background task: run the evaluation orchestrator using the application
-owner's wallet to sign GenLayer transactions.
+Background task: run the evaluation orchestrator and emit metrics.
 """
 
 from __future__ import annotations
 
+import time
 import uuid
 
 from sqlalchemy import select
@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
 from backend.app.core.logging import get_logger
+from backend.app.core.metrics import evaluation_duration_seconds, evaluations_total
 from backend.app.core.wallet_crypto import decrypt_secret
 from backend.app.db.session import SessionLocal
 from backend.app.models.application import Application
@@ -47,7 +48,7 @@ def _user_private_key(db: Session, user_id) -> str | None:
         return None
     try:
         return decrypt_secret(user.encrypted_private_key)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         log.error("user_wallet_decrypt_failed", user_id=str(user_id), error=str(exc))
         return None
 
@@ -67,6 +68,9 @@ def _run(db: Session, application_id: uuid.UUID) -> None:
     app.status = "evaluating"
     db.commit()
 
+    started = time.perf_counter()
+    backend_label = settings.llm_backend
+    final_status = "failed"
     try:
         pk = _user_private_key(db, app.user_id)
         outcome = run_evaluation(
@@ -80,6 +84,7 @@ def _run(db: Session, application_id: uuid.UUID) -> None:
             account_private_key=pk,
         )
         r = outcome.report
+        backend_label = outcome.backend
         ev.backend = outcome.backend
         ev.cv_score = r.cv.value
         ev.cover_letter_score = r.cover_letter.value
@@ -104,6 +109,7 @@ def _run(db: Session, application_id: uuid.UUID) -> None:
         ev.status = "complete"
         app.status = "complete"
         db.commit()
+        final_status = "complete"
         log.info(
             "evaluation_complete",
             application_id=str(application_id),
@@ -111,7 +117,7 @@ def _run(db: Session, application_id: uuid.UUID) -> None:
             backend=outcome.backend,
             contract_tx_hash=ev.contract_tx_hash,
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         db.rollback()
         fresh_ev = db.scalar(select(Evaluation).where(Evaluation.application_id == application_id))
         if fresh_ev is not None:
@@ -125,6 +131,11 @@ def _run(db: Session, application_id: uuid.UUID) -> None:
             db.commit()
         log.exception("evaluation_failed", application_id=str(application_id))
         raise
+    finally:
+        evaluation_duration_seconds.labels(backend=backend_label).observe(
+            time.perf_counter() - started
+        )
+        evaluations_total.labels(backend=backend_label, status=final_status).inc()
 
 
 @celery_app.task(name="cvpilot.evaluate_application", bind=True, max_retries=2)

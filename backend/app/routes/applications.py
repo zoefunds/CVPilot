@@ -1,8 +1,5 @@
 """
-Applications API. Enforces a balance gate before accepting a submission
-when running against the GenLayer backend (so users never end up with
-stuck pending or failed-forbidden evaluations because their wallet has
-no GEN to pay validators).
+Applications API with balance-gated submission and submission metrics.
 """
 
 import uuid
@@ -20,10 +17,12 @@ from backend.app.core.errors import (
     ValidationAppError,
 )
 from backend.app.core.logging import get_logger
+from backend.app.core.metrics import applications_submitted_total
 from backend.app.db.session import get_db
 from backend.app.dependencies.auth import get_current_user
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.models.application import Application, FileAsset
+from backend.app.models.evaluation import Evaluation
 from backend.app.models.user import User
 from backend.app.schemas.application import (
     ApplicationListItem,
@@ -79,7 +78,6 @@ def _store_file(storage, *, user_id, application_id, kind, filename, data, conte
 
 
 def _check_balance_or_raise(user: User) -> None:
-    """Balance gate. Only active when LLM_BACKEND=genlayer."""
     if settings.llm_backend != "genlayer":
         return
     if not user.wallet_address:
@@ -114,12 +112,21 @@ def create_application(
     current_user: User = Depends(get_current_user),
 ):
     if not (job_url.startswith("http://") or job_url.startswith("https://")):
+        applications_submitted_total.labels(result="rejected_validation").inc()
         raise ValidationAppError("job_url must start with http or https", code="job_url_invalid")
 
-    _check_balance_or_raise(current_user)
+    try:
+        _check_balance_or_raise(current_user)
+    except InsufficientBalanceError:
+        applications_submitted_total.labels(result="rejected_balance").inc()
+        raise
 
-    cv_bytes = _validate_upload(cv, "cv")
-    cl_bytes = _validate_upload(cover_letter, "cover_letter")
+    try:
+        cv_bytes = _validate_upload(cv, "cv")
+        cl_bytes = _validate_upload(cover_letter, "cover_letter")
+    except ValidationAppError:
+        applications_submitted_total.labels(result="rejected_validation").inc()
+        raise
 
     application = Application(
         user_id=current_user.id,
@@ -148,6 +155,7 @@ def create_application(
     from workers.tasks.applications import process_application
     process_application.delay(str(application.id))
     log.info("application_created", application_id=str(application.id), user_id=str(current_user.id))
+    applications_submitted_total.labels(result="accepted").inc()
     return ApplicationPublic.model_validate(application)
 
 
@@ -156,14 +164,6 @@ def list_applications(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    """
-    Dashboard list: show applications that produced a real on-chain write,
-    plus in-progress and failed ones. Hide completed evaluations that have
-    no contract_tx_hash (cache hits or stub-only) so the dashboard reflects
-    real chain activity.
-    """
-    from backend.app.models.evaluation import Evaluation
-
     rows = db.execute(
         select(Application)
         .outerjoin(Evaluation, Evaluation.application_id == Application.id)

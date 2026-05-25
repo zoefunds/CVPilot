@@ -1,4 +1,16 @@
 """
+Replace the SDK-based send strategies with a direct JSON-RPC eth_sendRawTransaction
+call. We sign locally with eth-account and post the raw tx to whatever StudioNet
+endpoint the SDK is using.
+
+This is robust against genlayer-py shape changes because we never call the SDK
+client for the actual send.
+"""
+from pathlib import Path
+
+TARGET = Path("/Users/macbook/CVPilot/services/genlayer/wallet.py")
+
+NEW = '''"""
 GenLayer wallet helpers: generation, balance reads, native GEN transfers.
 
 Send strategy: sign locally and POST eth_sendRawTransaction directly to
@@ -36,9 +48,6 @@ def _install_buffer_shim() -> None:
         _abc.Buffer = _Buffer  # type: ignore[attr-defined]
     except Exception:
         pass
-
-
-from eth_utils import to_checksum_address  # type: ignore
 
 
 def _eth_account():
@@ -196,17 +205,9 @@ def send_gen(*, private_key: str, to_address: str, amount_wei: int) -> dict:
         log.warning("gas_price_unavailable", error=str(exc))
         gas_price = 0
 
-    try:
-        to_checksum = to_checksum_address(to_address)
-    except Exception as exc:
-        raise WalletError(
-            f"Recipient address is not a valid 0x address: {exc}",
-            code="recipient_invalid",
-        ) from exc
-
     tx = {
         "nonce": nonce,
-        "to": to_checksum,
+        "to": to_address,
         "value": int(amount_wei),
         "gas": 21000,
         "gasPrice": gas_price,
@@ -246,3 +247,7 @@ def send_gen(*, private_key: str, to_address: str, amount_wei: int) -> dict:
         "to_address": to_address,
         "amount_wei": int(amount_wei),
     }
+'''
+
+TARGET.write_text(NEW, encoding="utf-8")
+print(f"patched {TARGET}")

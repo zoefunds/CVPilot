@@ -1,4 +1,63 @@
 """
+1. Move all top-level scaffold_*.py / fix_*.py / update_*.py / patch_*.py /
+   sync_*.py / wire_*.py / write_*.py / restore_*.py / cleanup_*.py files
+   into scripts/scaffolds/ so the repo root is clean.
+2. Patch tests/backend/conftest.py so the autouse cleanup only deletes data
+   belonging to test users (pytest+...@cvpilot.dev). Your real data stays.
+"""
+
+from __future__ import annotations
+import shutil
+from pathlib import Path
+
+ROOT = Path("/Users/macbook/CVPilot")
+ARCHIVE = ROOT / "scripts/scaffolds"
+ARCHIVE.mkdir(parents=True, exist_ok=True)
+
+PREFIXES = (
+    "scaffold_",
+    "fix_",
+    "update_",
+    "patch_",
+    "sync_",
+    "wire_",
+    "write_",
+    "restore_",
+    "cleanup_and_fix",  # don't move *this* script while it's running
+)
+
+moved = []
+for p in sorted(ROOT.glob("*.py")):
+    if p.name == "cleanup_and_fix.py":
+        continue
+    if any(p.name.startswith(prefix) for prefix in PREFIXES):
+        target = ARCHIVE / p.name
+        shutil.move(str(p), str(target))
+        moved.append(p.name)
+        print(f"  moved {p.name} -> scripts/scaffolds/")
+
+print(f"\nMoved {len(moved)} files into scripts/scaffolds/")
+
+# Write a small README explaining the folder.
+(ARCHIVE / "README.md").write_text(
+    """# scaffolds
+
+Historical build scripts. Each one wrote code into the project at a specific
+phase of construction. They are not part of the running app; they are the
+recipe used to assemble it. Kept for traceability.
+
+Newer code should live under the appropriate domain directory
+(`backend/`, `frontend/`, `services/`, `workers/`, etc.). Do not add new
+scaffolds here unless you are intentionally archiving build steps.
+""",
+    encoding="utf-8",
+)
+print("wrote scripts/scaffolds/README.md")
+
+# ---- Fix conftest.py so pytest does not nuke real user data ----
+CONFTEST = ROOT / "tests/backend/conftest.py"
+CONFTEST.write_text(
+    '''"""
 Pytest fixtures for backend integration tests.
 
 The autouse cleanup ONLY removes data created by test users (emails matching
@@ -95,3 +154,7 @@ def _cleanup_test_data() -> None:
         conn.execute(
             text("DELETE FROM users WHERE email LIKE 'pytest+%@cvpilot.dev'")
         )
+''',
+    encoding="utf-8",
+)
+print("patched tests/backend/conftest.py: test-data-only cleanup")

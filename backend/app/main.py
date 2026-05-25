@@ -13,15 +13,18 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from api.v1.router import api_router
 from backend.app.core.config import settings
+from backend.app.core.startup_guard import assert_safe_startup
 from backend.app.core.errors import register_exception_handlers
 from backend.app.core.logging import configure_logging, get_logger
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.middleware.request_id import RequestIDMiddleware
 from backend.app.middleware.request_log import RequestLogMiddleware
+from backend.app.middleware.security_headers import SecurityHeadersMiddleware
 from backend.app.routes import health
 
 
 def create_app() -> FastAPI:
+    assert_safe_startup()
     configure_logging()
     log = get_logger("startup")
 
@@ -45,6 +48,7 @@ def create_app() -> FastAPI:
     app.add_middleware(SlowAPIMiddleware)
 
     app.add_middleware(RequestLogMiddleware)
+    app.add_middleware(SecurityHeadersMiddleware)
     app.add_middleware(RequestIDMiddleware)
 
     app.add_middleware(

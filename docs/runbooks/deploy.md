@@ -99,3 +99,22 @@ Do not blindly downgrade.
 - Worker: start at 1 machine x 1 GiB. concurrency=2 is appropriate
   for GenLayer-bound work since each evaluation is mostly waiting.
   Add machines, not concurrency, to scale.
+
+
+## Frontend (Vercel)
+
+The frontend is a Next.js app. Recommended host: Vercel. The repo ships
+frontend/vercel.json with API rewrites and edge security headers.
+
+1. Import the repo into Vercel. Set the project root to `frontend/`.
+2. Add env vars from frontend/.env.production.example.
+3. Confirm the rewrite target in frontend/vercel.json points at your
+   API host (cvpilot-api.fly.dev by default).
+4. Trigger a deploy. Vercel runs `next build` from vercel.json.
+5. Smoke test: load /, sign in, submit an application, open the
+   /verify/<hash> page in an incognito window.
+
+To reproduce the prod build locally:
+
+    bash frontend/scripts/build-prod.sh
+    cd frontend && npm run start

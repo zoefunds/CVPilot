@@ -11,8 +11,11 @@ import type {
   PublicEvaluation,
   TokenPair,
   UserPublic,
+  WalletActivityItem,
   WalletExport,
   WalletPublic,
+  WalletSendRequest,
+  WalletSendResponse,
 } from './types';
 
 export class ApiError extends Error {
@@ -104,14 +107,21 @@ export const authApi = {
       body: JSON.stringify({ email, password, full_name: full_name || null }),
     });
   },
-  me(): Promise<UserPublic> {
-    return api<UserPublic>('/auth/me');
-  },
+  me(): Promise<UserPublic> { return api<UserPublic>('/auth/me'); },
 };
 
 export const walletApi = {
   get(): Promise<WalletPublic> { return api<WalletPublic>('/auth/wallet'); },
   export(): Promise<WalletExport> { return api<WalletExport>('/auth/wallet/export', { method: 'POST' }); },
+  send(input: WalletSendRequest): Promise<WalletSendResponse> {
+    return api<WalletSendResponse>('/auth/wallet/send', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    });
+  },
+  activity(): Promise<WalletActivityItem[]> {
+    return api<WalletActivityItem[]>('/auth/wallet/activity');
+  },
 };
 
 export interface CreateApplicationInput {

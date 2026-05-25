@@ -36,6 +36,35 @@ export interface WalletExport {
   warning: string;
 }
 
+export interface WalletSendRequest {
+  to_address: string;
+  amount_gen: string;
+}
+
+export interface WalletSendResponse {
+  tx_hash: string;
+  from_address: string;
+  to_address: string;
+  amount_wei: number;
+  amount_gen: string;
+  explorer_url: string | null;
+}
+
+export type WalletActivityKind = 'evaluation' | 'send';
+
+export interface WalletActivityItem {
+  kind: WalletActivityKind;
+  timestamp: string;
+  tx_hash: string | null;
+  status: string;
+  description: string;
+  to_address: string | null;
+  amount_wei: number | null;
+  amount_gen: string | null;
+  application_id: string | null;
+  explorer_url: string | null;
+}
+
 export type ApplicationStatus =
   | 'pending'
   | 'processing'

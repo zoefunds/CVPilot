@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Alert } from '@/components/ui/Alert';
 import { Container } from '@/components/ui/Container';
 import { WalletCard } from '@/components/dashboard/WalletCard';
+import { WalletActivity } from '@/components/dashboard/WalletActivity';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 
@@ -16,6 +17,7 @@ export default function SettingsPage() {
   const { user, signOut } = useAuth();
   const { push } = useToast();
   const [confirming, setConfirming] = useState(false);
+  const [activityKey, setActivityKey] = useState(0);
 
   async function copy(text: string, label: string) {
     try {
@@ -32,7 +34,11 @@ export default function SettingsPage() {
       <h1 className="mt-3 font-serif text-5xl">Your account.</h1>
 
       <section className="mt-10">
-        <WalletCard />
+        <WalletCard onActivityChanged={() => setActivityKey((k) => k + 1)} />
+      </section>
+
+      <section className="mt-10">
+        <WalletActivity refreshKey={activityKey} />
       </section>
 
       <section className="mt-12 grid gap-6 sm:grid-cols-2">

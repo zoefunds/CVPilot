@@ -8,6 +8,7 @@ import type {
   ApplicationListItem,
   ApplicationPublic,
   EvaluationPublic,
+  PublicEvaluation,
   TokenPair,
   UserPublic,
   WalletExport,
@@ -55,7 +56,7 @@ async function rawFetch<T>(path: string, opts: FetchOpts = {}): Promise<T> {
       res.status,
       err?.code || 'http_error',
       err?.message || `HTTP ${res.status}`,
-      err?.details,
+      err?.details ?? body,
     );
   }
   return body as T;
@@ -93,15 +94,13 @@ export async function api<T>(path: string, opts: FetchOpts = {}): Promise<T> {
 export const authApi = {
   login(email: string, password: string): Promise<TokenPair> {
     return api<TokenPair>('/auth/login', {
-      method: 'POST',
-      auth: false,
+      method: 'POST', auth: false,
       body: JSON.stringify({ email, password }),
     });
   },
   register(email: string, password: string, full_name?: string): Promise<UserPublic> {
     return api<UserPublic>('/auth/register', {
-      method: 'POST',
-      auth: false,
+      method: 'POST', auth: false,
       body: JSON.stringify({ email, password, full_name: full_name || null }),
     });
   },
@@ -111,12 +110,8 @@ export const authApi = {
 };
 
 export const walletApi = {
-  get(): Promise<WalletPublic> {
-    return api<WalletPublic>('/auth/wallet');
-  },
-  export(): Promise<WalletExport> {
-    return api<WalletExport>('/auth/wallet/export', { method: 'POST' });
-  },
+  get(): Promise<WalletPublic> { return api<WalletPublic>('/auth/wallet'); },
+  export(): Promise<WalletExport> { return api<WalletExport>('/auth/wallet/export', { method: 'POST' }); },
 };
 
 export interface CreateApplicationInput {
@@ -137,17 +132,15 @@ export const applicationsApi = {
     fd.append('cover_letter', input.cover_letter, input.cover_letter.name);
     return api<ApplicationPublic>('/applications', { method: 'POST', body: fd });
   },
-  list(): Promise<ApplicationListItem[]> {
-    return api<ApplicationListItem[]>('/applications');
-  },
-  get(id: string): Promise<ApplicationPublic> {
-    return api<ApplicationPublic>(`/applications/${id}`);
-  },
-  getEvaluation(id: string): Promise<EvaluationPublic> {
-    return api<EvaluationPublic>(`/applications/${id}/evaluation`);
-  },
-  triggerEvaluation(id: string): Promise<EvaluationPublic> {
-    return api<EvaluationPublic>(`/applications/${id}/evaluate`, { method: 'POST' });
+  list(): Promise<ApplicationListItem[]> { return api<ApplicationListItem[]>('/applications'); },
+  get(id: string): Promise<ApplicationPublic> { return api<ApplicationPublic>(`/applications/${id}`); },
+  getEvaluation(id: string): Promise<EvaluationPublic> { return api<EvaluationPublic>(`/applications/${id}/evaluation`); },
+  triggerEvaluation(id: string): Promise<EvaluationPublic> { return api<EvaluationPublic>(`/applications/${id}/evaluate`, { method: 'POST' }); },
+};
+
+export const publicApi = {
+  verify(contentHash: string): Promise<PublicEvaluation> {
+    return api<PublicEvaluation>(`/public/verify/${contentHash}`, { auth: false });
   },
 };
 
@@ -163,9 +156,7 @@ export const adminApi = {
   listUsers(limit = 100, offset = 0): Promise<AdminUserListItem[]> {
     return api<AdminUserListItem[]>(`/admin/users?limit=${limit}&offset=${offset}`);
   },
-  getUser(id: string): Promise<AdminUserListItem> {
-    return api<AdminUserListItem>(`/admin/users/${id}`);
-  },
+  getUser(id: string): Promise<AdminUserListItem> { return api<AdminUserListItem>(`/admin/users/${id}`); },
   listApplications(opts: AdminListAppsOpts = {}): Promise<AdminApplicationListItem[]> {
     const p = new URLSearchParams();
     if (opts.status) p.set('status', opts.status);
@@ -174,10 +165,6 @@ export const adminApi = {
     p.set('offset', String(opts.offset ?? 0));
     return api<AdminApplicationListItem[]>(`/admin/applications?${p.toString()}`);
   },
-  getApplication(id: string): Promise<ApplicationPublic> {
-    return api<ApplicationPublic>(`/admin/applications/${id}`);
-  },
-  getEvaluation(id: string): Promise<EvaluationPublic> {
-    return api<EvaluationPublic>(`/admin/applications/${id}/evaluation`);
-  },
+  getApplication(id: string): Promise<ApplicationPublic> { return api<ApplicationPublic>(`/admin/applications/${id}`); },
+  getEvaluation(id: string): Promise<EvaluationPublic> { return api<EvaluationPublic>(`/admin/applications/${id}/evaluation`); },
 };

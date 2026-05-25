@@ -147,6 +147,16 @@ export default function ApplicationDetailPage() {
                 <span className="text-xs text-[#3a342c]/70"> /100</span>
               </span>
             )}
+            {ev.content_hash && (
+              <button
+                type="button"
+                onClick={() => onCopy(`${window.location.origin}/verify/${ev.content_hash}`, 'Verification link')}
+                className="mt-3 inline-flex items-center justify-center rounded-full border border-[#1a1814]/30 px-4 py-2 text-xs text-[#1a1814] hover:bg-[#1a1814]/5"
+              >
+                Share verification link
+              </button>
+            )}
+            
             <StatusBadge status={app.status} />
           </div>
         </Container>

@@ -120,6 +120,28 @@ export interface EvaluationPublic {
   updated_at: string;
 }
 
+export interface PublicEvaluation {
+  content_hash: string;
+  contract_address: string;
+  found: boolean;
+  cv_score: number | null;
+  cover_letter_score: number | null;
+  job_match_score: number | null;
+  ats_score: number | null;
+  competitiveness_score: number | null;
+  overall_score: number | null;
+  summary: string | null;
+  improved_positioning: string | null;
+  missing_keywords: string[];
+  missing_skills: string[];
+  recommendations: string[];
+  weak_statements: string[];
+  company_alignment_notes: string[];
+  strengths: string[];
+  risks: string[];
+  rationale: EvaluationRationale | null;
+}
+
 export interface AdminStats {
   user_count: number;
   application_count: number;

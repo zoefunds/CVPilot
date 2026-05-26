@@ -18,8 +18,8 @@ log = get_logger("llm.genlayer")
 _CV_MAX = 8000
 _CL_MAX = 4000
 _JOB_MAX = 6000
-_READ_POLL_S = 120
-_READ_INTERVAL_S = 3
+_READ_POLL_S = 240
+_READ_INTERVAL_S = 5
 
 
 class GenLayerClientError(AppError):
@@ -212,8 +212,8 @@ class GenLayerLLMClient(LLMClient):
         finalized = getattr(ts, "FINALIZED", None) if ts else None
         attempts = []
         if finalized is not None:
-            attempts.append({"transaction_hash": tx_hash, "status": finalized, "retries": 60, "interval": 3000})
-        attempts.append({"transaction_hash": tx_hash, "retries": 60, "interval": 3000})
+            attempts.append({"transaction_hash": tx_hash, "status": finalized, "retries": 240, "interval": 5000})
+        attempts.append({"transaction_hash": tx_hash, "retries": 240, "interval": 5000})
         attempts.append({"transaction_hash": tx_hash})
         for kw in attempts:
             try:

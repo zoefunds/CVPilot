@@ -29,8 +29,8 @@ celery_app.conf.update(
     enable_utc=True,
     task_acks_late=True,
     task_reject_on_worker_lost=True,
-    task_time_limit=540,
-    task_soft_time_limit=480,
+    task_time_limit=1500,
+    task_soft_time_limit=1380,
     worker_max_tasks_per_child=100,
     broker_connection_retry_on_startup=True,
 )

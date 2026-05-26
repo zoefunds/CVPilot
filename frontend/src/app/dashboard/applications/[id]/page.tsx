@@ -242,6 +242,33 @@ function EvaluationView({
   const cv = app.files.find((f) => f.kind === "cv");
   const cl = app.files.find((f) => f.kind === "cover_letter");
   const tx = ev.contract_tx_hash;
+  const heroRef = useRef<HTMLElement | null>(null);
+  const [exporting, setExporting] = useState(false);
+
+  async function exportPng() {
+    if (!heroRef.current || exporting) return;
+    setExporting(true);
+    try {
+      const { toPng } = await import("html-to-image");
+      const dataUrl = await toPng(heroRef.current, {
+        cacheBust: true,
+        backgroundColor: "#fcf9f1",
+        pixelRatio: 2,
+      });
+      const filename = `cvpilot-${(ev.content_hash || "evaluation").slice(0, 12)}.png`;
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("export failed", err);
+      onCopy("", "Export failed");
+    } finally {
+      setExporting(false);
+    }
+  }
 
   function shareLink() {
     if (!ev.content_hash) return;
@@ -251,7 +278,7 @@ function EvaluationView({
 
   return (
     <div className="mt-10 flex flex-col gap-10">
-      <section className="rounded-3xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-7 shadow-sm shadow-[#1c1c17]/[0.04] sm:p-9">
+      <section ref={heroRef} className="rounded-3xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-7 shadow-sm shadow-[#1c1c17]/[0.04] sm:p-9">
         <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">
             <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
@@ -323,7 +350,7 @@ function EvaluationView({
             )}
 
             {ev.content_hash ? (
-              <div className="mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={shareLink}
@@ -331,6 +358,15 @@ function EvaluationView({
                 >
                   <Icon name="send" size={13} />
                   Share verification link
+                </button>
+                <button
+                  type="button"
+                  onClick={exportPng}
+                  disabled={exporting}
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#cdc5bc] bg-white px-4 py-2 text-[12px] font-medium text-[#1c1c17] transition-all hover:bg-[#fcf9f1] active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  <Icon name="document" size={13} />
+                  {exporting ? "Exporting…" : "Download as image"}
                 </button>
               </div>
             ) : null}

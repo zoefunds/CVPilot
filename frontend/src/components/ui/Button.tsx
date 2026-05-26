@@ -1,42 +1,69 @@
-import Link from 'next/link';
-import { ReactNode } from 'react';
+import Link from "next/link";
+import type {
+  AnchorHTMLAttributes,
+  ButtonHTMLAttributes,
+  ReactNode,
+} from "react";
 
-type Variant = 'primary' | 'secondary' | 'ghost';
+type Variant = "primary" | "secondary" | "ghost" | "danger";
+type Size = "sm" | "md" | "lg";
 
-const styles: Record<Variant, string> = {
-  primary:
-    'bg-[#1a1814] text-[#efece4] hover:bg-[#3a342c] focus-visible:outline-[#2b4f3a]',
-  secondary:
-    'bg-[#2b4f3a] text-[#efece4] hover:bg-[#1f3a2a] focus-visible:outline-[#1a1814]',
-  ghost:
-    'bg-transparent text-[#1a1814] border border-[#1a1814]/30 hover:bg-[#1a1814]/5',
+const sizes: Record<Size, string> = {
+  sm: "px-4 py-2 text-[13px]",
+  md: "px-6 py-3 text-[14px]",
+  lg: "px-8 py-3.5 text-[15px]",
 };
 
-const base =
-  'inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-medium transition-colors duration-150 disabled:opacity-50 disabled:pointer-events-none';
+const variants: Record<Variant, string> = {
+  primary:
+    "bg-[#1c1c17] text-white shadow-lg shadow-[#1c1c17]/15 hover:bg-[#332f28]",
+  secondary:
+    "border border-[#cdc5bc] bg-white text-[#1c1c17] hover:bg-[#fcf9f1]",
+  ghost:
+    "text-[#4b463f] hover:bg-[#1c1c17]/5 hover:text-[#1c1c17]",
+  danger:
+    "bg-red-600 text-white shadow-lg shadow-red-600/20 hover:bg-red-700",
+};
 
-export function Button({
-  href,
-  children,
-  variant = 'primary',
-  className = '',
-  ...rest
-}: {
-  href?: string;
-  children: ReactNode;
+const baseClasses =
+  "inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition-all active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60";
+
+type SharedProps = {
   variant?: Variant;
+  size?: Size;
   className?: string;
-} & React.ButtonHTMLAttributes<HTMLButtonElement>) {
-  const cls = `${base} ${styles[variant]} ${className}`;
-  if (href) {
+  children?: ReactNode;
+};
+
+type ButtonAsButton = SharedProps &
+  ButtonHTMLAttributes<HTMLButtonElement> & { href?: undefined };
+
+type ButtonAsLink = SharedProps &
+  Omit<AnchorHTMLAttributes<HTMLAnchorElement>, "href"> & { href: string };
+
+type ButtonProps = ButtonAsButton | ButtonAsLink;
+
+export function Button(props: ButtonProps) {
+  const {
+    variant = "primary",
+    size = "md",
+    className = "",
+    children,
+    ...rest
+  } = props;
+  const merged = [baseClasses, sizes[size], variants[variant], className].join(" ");
+
+  if ("href" in props && props.href) {
+    const { href, ...anchorRest } = rest as ButtonAsLink;
     return (
-      <Link href={href} className={cls}>
+      <Link href={href} className={merged} {...anchorRest}>
         {children}
       </Link>
     );
   }
+
   return (
-    <button type="button" className={cls} {...rest}>
+    <button {...(rest as ButtonHTMLAttributes<HTMLButtonElement>)} className={merged}>
       {children}
     </button>
   );

@@ -211,7 +211,7 @@ function StatCard({
   loading?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5 transition-all hover:border-[#cdc5bc] hover:shadow-sm">
+    <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-[#cdc5bc] hover:shadow-md hover:shadow-[#1c1c17]/[0.05]">
       <div className="flex items-center justify-between">
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
           {label}

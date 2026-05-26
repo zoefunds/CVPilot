@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ApplicationsList } from "@/components/dashboard/ApplicationsList";
 import { Icon, type IconName } from "@/components/icons/Icon";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { useWallet } from "@/contexts/WalletContext";
 import { ApiError, applicationsApi } from "@/lib/api";
@@ -84,21 +85,25 @@ export default function DashboardPage() {
           label="Total applications"
           value={items === null ? "—" : String(total)}
           icon="document"
+          loading={items === null}
         />
         <StatCard
           label="Verified onchain"
           value={items === null ? "—" : String(verified)}
           icon="shield_check"
+          loading={items === null}
         />
         <StatCard
           label="In progress"
           value={items === null ? "—" : String(inProgress)}
           icon="spark"
+          loading={items === null}
         />
         <StatCard
           label="Wallet balance"
           value={`${formatGen(wallet?.balance_gen)} GEN`}
           icon="wallet"
+          loading={!wallet}
         />
       </div>
 
@@ -154,10 +159,12 @@ function StatCard({
   label,
   value,
   icon,
+  loading,
 }: {
   label: string;
   value: string;
   icon: IconName;
+  loading?: boolean;
 }) {
   return (
     <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5 transition-all hover:border-[#cdc5bc] hover:shadow-sm">
@@ -169,12 +176,16 @@ function StatCard({
           <Icon name={icon} size={16} />
         </span>
       </div>
-      <div
-        className="mt-3 text-[28px] font-bold leading-none text-[#1c1c17]"
-        style={{ fontFamily: "Literata, serif" }}
-      >
-        {value}
-      </div>
+      {loading ? (
+        <Skeleton className="mt-3 h-7 w-16" />
+      ) : (
+        <div
+          className="mt-3 text-[28px] font-bold leading-none text-[#1c1c17]"
+          style={{ fontFamily: "Literata, serif" }}
+        >
+          {value}
+        </div>
+      )}
     </div>
   );
 }

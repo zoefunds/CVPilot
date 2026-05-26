@@ -6,6 +6,7 @@ import { useToast } from "@/contexts/ToastContext";
 import { LOW_BALANCE_WEI, useWallet } from "@/contexts/WalletContext";
 import { SendGenModal } from "@/components/dashboard/SendGenModal";
 import { Icon } from "@/components/icons/Icon";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 export function WalletCard({
   onActivityChanged,
@@ -62,8 +63,22 @@ export function WalletCard({
 
   if (!wallet) {
     return (
-      <div className="rounded-2xl border border-dashed border-[#cdc5bc]/70 bg-[#fcf9f1]/50 p-8 text-center text-[13px] text-[#7c766e]">
-        Loading wallet…
+      <div className="rounded-3xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-6 sm:p-7">
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="mt-2 h-6 w-56" />
+        <Skeleton className="mt-3 h-4 w-full max-w-md" />
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-[#cdc5bc]/50 bg-white p-4">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="mt-2 h-4 w-full" />
+            <Skeleton className="mt-3 h-7 w-28" />
+          </div>
+          <div className="rounded-2xl border border-[#cdc5bc]/50 bg-white p-4">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="mt-2 h-8 w-32" />
+            <Skeleton className="mt-3 h-7 w-40" />
+          </div>
+        </div>
       </div>
     );
   }

@@ -7,6 +7,7 @@ import { Alert } from "@/components/ui/Alert";
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Icon } from "@/components/icons/Icon";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiError, applicationsApi } from "@/lib/api";
 import type { ApplicationPublic, EvaluationPublic } from "@/lib/types";
@@ -113,8 +114,23 @@ export default function ApplicationDetailPage() {
   if (!app) {
     return (
       <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
-        <div className="rounded-2xl border border-dashed border-[#cdc5bc]/70 bg-[#fcf9f1]/50 p-10 text-center text-[13px] text-[#7c766e]">
-          Loading your evaluation…
+        <Skeleton className="h-3 w-24" />
+        <Skeleton className="mt-3 h-10 w-3/4" />
+        <Skeleton className="mt-2 h-3 w-1/2" />
+        <div className="mt-10 rounded-3xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-7 sm:p-9">
+          <div className="grid items-center gap-8 lg:grid-cols-12">
+            <div className="lg:col-span-5">
+              <Skeleton className="h-3 w-20" />
+              <Skeleton className="mt-3 h-16 w-32" />
+              <Skeleton className="mt-5 h-7 w-40" />
+            </div>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 lg:col-span-7">
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+              <Skeleton className="h-32 w-full" />
+            </div>
+          </div>
         </div>
       </div>
     );

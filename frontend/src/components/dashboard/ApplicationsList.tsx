@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Icon } from "@/components/icons/Icon";
+import { SkeletonRows } from "@/components/ui/Skeleton";
 import { ApiError, applicationsApi } from "@/lib/api";
 import type { ApplicationListItem } from "@/lib/types";
 
@@ -59,8 +60,8 @@ export function ApplicationsList() {
 
   if (items === null) {
     return (
-      <div className="rounded-2xl border border-dashed border-[#cdc5bc]/70 bg-[#fcf9f1]/50 p-10 text-center text-[13px] text-[#7c766e]">
-        Loading your evaluations…
+      <div className="overflow-hidden rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-3">
+        <SkeletonRows rows={4} />
       </div>
     );
   }

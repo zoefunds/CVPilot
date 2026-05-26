@@ -95,6 +95,79 @@ def _serialise_receipt(receipt) -> dict:
     return out
 
 
+
+def _extract_eval_json_from_receipt(receipt) -> str | None:
+    """Recursively search a finalized receipt for our evaluation JSON.
+
+    The GenLayer SDK puts the leader's return value somewhere in the
+    consensus_data tree, but the exact path varies between SDK versions.
+    Rather than depend on a specific shape, we walk the whole structure
+    and grab the first string that parses to a dict with our well-known
+    evaluation keys.
+    """
+    target_keys = ("overall_score", "cv_score", "ats_score")
+
+    def _try_parse(s: str):
+        s = s.strip()
+        # GenVM sometimes double-encodes: "\"{...}\""
+        if s.startswith('"') and s.endswith('"'):
+            try:
+                inner = json.loads(s)
+                if isinstance(inner, str):
+                    s = inner
+            except Exception:
+                pass
+        if not (s.startswith("{") and s.endswith("}")):
+            return None
+        if not any(k in s for k in target_keys):
+            return None
+        try:
+            parsed = json.loads(s)
+        except Exception:
+            return None
+        if isinstance(parsed, dict) and any(k in parsed for k in target_keys):
+            return s
+        return None
+
+    seen: set[int] = set()
+
+    def _walk(obj):
+        oid = id(obj)
+        if oid in seen:
+            return None
+        seen.add(oid)
+        if isinstance(obj, str):
+            return _try_parse(obj)
+        if isinstance(obj, (bytes, bytearray)):
+            try:
+                return _try_parse(obj.decode("utf-8", errors="ignore"))
+            except Exception:
+                return None
+        if isinstance(obj, dict):
+            for v in obj.values():
+                r = _walk(v)
+                if r:
+                    return r
+            return None
+        if isinstance(obj, (list, tuple, set)):
+            for v in obj:
+                r = _walk(v)
+                if r:
+                    return r
+            return None
+        if hasattr(obj, "__dict__"):
+            try:
+                for v in vars(obj).values():
+                    r = _walk(v)
+                    if r:
+                        return r
+            except Exception:
+                pass
+        return None
+
+    return _walk(receipt)
+
+
 class GenLayerLLMClient(LLMClient):
     def __init__(self, *, account_private_key: Optional[str] = None) -> None:
         if not settings.genlayer_contract_address:
@@ -203,8 +276,29 @@ class GenLayerLLMClient(LLMClient):
         log.info("genlayer_read_poll_done", content_hash=h[:12], polls=polls, found=stored is not None)
 
         if not stored:
+            # Fallback: extract the evaluation JSON directly from the
+            # receipt. The leader validator returned the JSON as part of
+            # the transaction, so even if the on-chain storage poll comes
+            # back empty (read replica lag, indexing issue, or contract
+            # storage quirk), the data is still in the receipt we already
+            # have.
+            from_receipt = _extract_eval_json_from_receipt(receipt)
+            if from_receipt:
+                log.warning(
+                    "genlayer_used_receipt_fallback",
+                    content_hash=h[:12],
+                    tx_hash=tx_hash,
+                    polls=polls,
+                )
+                return self._build_evaluation(
+                    from_receipt,
+                    contract_tx_hash=tx_hash,
+                    content_hash=h,
+                    receipt=receipt_dict,
+                )
             raise GenLayerClientError(
-                f"Contract accepted the write but get_evaluation returned empty after {polls} polls. "
+                f"Contract accepted the write but get_evaluation returned empty after {polls} polls "
+                f"and the receipt did not contain a parsable evaluation. "
                 f"Tx {tx_hash}. Receipt: {json.dumps(receipt_dict)[:1500]}",
                 code="genlayer_storage_not_persistent",
             )

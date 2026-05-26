@@ -6,9 +6,6 @@ primary_region = "iad"
 kill_signal = "SIGTERM"
 kill_timeout = "60s"
 
-[build]
-  builder = "paketobuildpacks/builder-jammy-base"
-  buildpacks = ["paketo-buildpacks/python"]
 
 [env]
   APP_ENV = "production"

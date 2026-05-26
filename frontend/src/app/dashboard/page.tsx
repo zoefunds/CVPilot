@@ -6,7 +6,7 @@ import { ApplicationsList } from "@/components/dashboard/ApplicationsList";
 import { Icon, type IconName } from "@/components/icons/Icon";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
-import { useWallet } from "@/contexts/WalletContext";
+import { LOW_BALANCE_WEI, useWallet } from "@/contexts/WalletContext";
 import { ApiError, applicationsApi } from "@/lib/api";
 import type { ApplicationListItem } from "@/lib/types";
 
@@ -79,6 +79,50 @@ export default function DashboardPage() {
           under a minute.
         </p>
       </div>
+
+
+      {wallet && wallet.balance_wei < LOW_BALANCE_WEI ? (
+        <div className="mb-6 rounded-2xl border border-amber-300/60 bg-amber-50 p-5">
+          <div className="flex items-start gap-3">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-200 text-amber-900">
+              <Icon name="wallet" size={18} />
+            </span>
+            <div className="flex-1">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-900">
+                Wallet needs funding
+              </p>
+              <h2
+                className="mt-1 text-[18px] text-[#1c1c17]"
+                style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+              >
+                Your balance is too low to run an evaluation.
+              </h2>
+              <p className="mt-1 text-[13px] leading-relaxed text-[#4b463f]">
+                Validators are paid in GEN to run the onchain LLM. Top up via
+                the StudioNet faucet using your wallet address, then come back
+                and submit.
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <Link
+                  href="/dashboard/settings"
+                  className="inline-flex items-center gap-1.5 rounded-lg bg-[#1c1c17] px-4 py-2 text-[12px] font-semibold text-white shadow-sm shadow-[#1c1c17]/15 transition-all hover:bg-[#332f28] active:scale-95"
+                >
+                  <Icon name="wallet" size={12} />
+                  Open my wallet
+                </Link>
+                <a
+                  href="https://studio.genlayer.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-300 bg-white px-4 py-2 text-[12px] font-semibold text-[#1c1c17] hover:bg-amber-50"
+                >
+                  Open StudioNet
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard

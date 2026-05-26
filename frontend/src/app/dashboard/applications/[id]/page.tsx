@@ -1,21 +1,18 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-import { ScoreGauge } from '@/components/ui/ScoreGauge';
-import { StatusBadge } from '@/components/dashboard/StatusBadge';
-import { Alert } from '@/components/ui/Alert';
-import { Container } from '@/components/ui/Container';
-import { useToast } from '@/contexts/ToastContext';
-import { ApiError, applicationsApi } from '@/lib/api';
-import type {
-  ApplicationPublic,
-  EvaluationPublic,
-} from '@/lib/types';
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
+import { Alert } from "@/components/ui/Alert";
+import { ScoreGauge } from "@/components/ui/ScoreGauge";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { Icon } from "@/components/icons/Icon";
+import { useToast } from "@/contexts/ToastContext";
+import { ApiError, applicationsApi } from "@/lib/api";
+import type { ApplicationPublic, EvaluationPublic } from "@/lib/types";
 
 function shortHash(h: string | null | undefined): string {
-  if (!h) return '';
+  if (!h) return "";
   if (h.length <= 14) return h;
   return `${h.slice(0, 8)}…${h.slice(-6)}`;
 }
@@ -48,24 +45,24 @@ export default function ApplicationDetailPage() {
         if (stopped.current) return;
         setApp(a);
 
-        if (a.status === 'complete' || a.status === 'failed') {
+        if (a.status === "complete" || a.status === "failed") {
           try {
             const ev = await applicationsApi.getEvaluation(id);
             if (!stopped.current) setEvaluation(ev);
-            if (a.status === 'complete' && !completed.current) {
+            if (a.status === "complete" && !completed.current) {
               completed.current = true;
               push({
-                tone: 'success',
-                title: 'Evaluation ready.',
-                message: 'Scroll for scores, strengths, risks, and recommendations.',
+                tone: "success",
+                title: "Evaluation ready.",
+                message: "Scroll for scores, strengths, risks, and recommendations.",
               });
             }
-            if (a.status === 'failed' && !completed.current) {
+            if (a.status === "failed" && !completed.current) {
               completed.current = true;
               push({
-                tone: 'error',
-                title: 'Evaluation failed.',
-                message: 'See the error below.',
+                tone: "error",
+                title: "Evaluation failed.",
+                message: "See the error below.",
               });
             }
           } catch (e) {
@@ -78,7 +75,7 @@ export default function ApplicationDetailPage() {
         timer = setTimeout(tick, 4000);
       } catch (e) {
         if (e instanceof ApiError) setError(e.message);
-        else setError('Could not load this application.');
+        else setError("Could not load this application.");
       }
     }
     void tick();
@@ -91,112 +88,131 @@ export default function ApplicationDetailPage() {
     if (!text) return;
     try {
       await navigator.clipboard.writeText(text);
-      push({ tone: 'success', title: 'Copied.', message: label });
+      push({ tone: "success", title: "Copied.", message: label });
     } catch {
-      push({ tone: 'error', title: 'Could not copy.' });
+      push({ tone: "error", title: "Could not copy." });
     }
   }
 
   if (error) {
     return (
-      <Container className="py-16">
+      <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
         <Alert tone="error">{error}</Alert>
-        <p className="mt-6 text-sm">
-          <Link href="/dashboard" className="underline">
-            Back to dashboard
+        <p className="mt-6 text-[13px]">
+          <Link
+            href="/dashboard"
+            className="font-semibold text-[#1c1c17] underline underline-offset-4 hover:text-[#332f28]"
+          >
+            ← Back to dashboard
           </Link>
         </p>
-      </Container>
+      </div>
     );
   }
 
   if (!app) {
     return (
-      <Container className="py-16">
-        <p className="text-sm text-[#3a342c]">Loading your evaluation.</p>
-      </Container>
+      <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
+        <div className="rounded-2xl border border-dashed border-[#cdc5bc]/70 bg-[#fcf9f1]/50 p-10 text-center text-[13px] text-[#7c766e]">
+          Loading your evaluation…
+        </div>
+      </div>
     );
   }
 
   const isWorking =
-    app.status === 'pending' ||
-    app.status === 'processing' ||
-    app.status === 'evaluating' ||
-    app.status === 'ready';
+    app.status === "pending" ||
+    app.status === "processing" ||
+    app.status === "evaluating" ||
+    app.status === "ready";
 
   const overall = evaluation?.overall_score ?? null;
 
   return (
     <>
-      {/* Sticky summary bar */}
-      <div className="sticky top-16 z-10 border-b border-[#d9d5c8] bg-[#efece4]/85 backdrop-blur supports-[backdrop-filter]:bg-[#efece4]/70">
-        <Container className="flex flex-wrap items-center justify-between gap-3 py-3 text-sm">
+      <div className="sticky top-14 z-10 border-b border-[#cdc5bc]/40 bg-[#fcf9f1]/85 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[1200px] flex-wrap items-center justify-between gap-3 px-6 py-3 md:px-8">
           <div className="flex min-w-0 items-center gap-3">
-            <Link href="/dashboard" className="text-[#3a342c] hover:text-[#1a1814]">
-              ← Dashboard
+            <Link
+              href="/dashboard"
+              className="inline-flex items-center gap-1.5 text-[13px] font-medium text-[#4b463f] transition-colors hover:text-[#1c1c17]"
+            >
+              <span aria-hidden>←</span> Dashboard
             </Link>
-            <span className="hidden text-[#3a342c]/40 sm:inline">|</span>
-            <span className="truncate font-medium text-[#1a1814]">
-              {app.job_title || 'Untitled posting'}
+            <span className="hidden text-[#cdc5bc] sm:inline">/</span>
+            <span className="hidden truncate text-[13px] font-medium text-[#1c1c17] sm:inline">
+              {app.job_title || "Untitled posting"}
             </span>
           </div>
           <div className="flex items-center gap-3">
-            {overall !== null && (
-              <span className="font-serif text-2xl text-[#1a1814]">
+            {overall !== null ? (
+              <span
+                className="text-[22px] font-bold leading-none text-[#1c1c17]"
+                style={{ fontFamily: "Literata, serif" }}
+              >
                 {overall}
-                <span className="text-xs text-[#3a342c]/70"> /100</span>
+                <span className="text-[11px] text-[#7c766e]">/100</span>
               </span>
-            )}
+            ) : null}
             <StatusBadge status={app.status} />
           </div>
-        </Container>
+        </div>
       </div>
 
-      <Container className="py-12">
-        <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">
-          Evaluation
-        </p>
-        <h1 className="mt-2 font-serif text-4xl sm:text-5xl">
-          {app.job_title || 'Untitled posting'}
-        </h1>
-        <a
-          href={app.job_url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="mt-2 inline-block max-w-full truncate text-sm text-[#3a342c]/80 hover:text-[#1a1814]"
-        >
-          {app.job_url}
-        </a>
+      <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
+        <header>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
+            Evaluation
+          </p>
+          <h1
+            className="mt-2 text-[34px] leading-tight tracking-tight text-[#1c1c17] md:text-[44px]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            {app.job_title || "Untitled posting"}
+          </h1>
+          <a
+            href={app.job_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-2 inline-block max-w-full truncate text-[13px] text-[#4b463f] hover:text-[#1c1c17] hover:underline"
+          >
+            {app.job_url}
+          </a>
+        </header>
 
-        {isWorking && (
-          <div className="mt-8 rounded-2xl border border-[#1a1814]/15 bg-white/50 p-6 text-sm text-[#3a342c]">
-            <p className="font-medium text-[#1a1814]">Working on it.</p>
-            <p className="mt-1 text-[#3a342c]/80">
-              We are parsing your files and fetching the job posting. This
-              page updates automatically.
-            </p>
+        {isWorking ? (
+          <div className="mt-8 flex items-start gap-3 rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5">
+            <span className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#1c1c17]/8 text-[#1c1c17]">
+              <Icon name="spark" size={18} />
+            </span>
+            <div>
+              <p className="text-[14px] font-semibold text-[#1c1c17]">Working on it.</p>
+              <p className="mt-1 text-[13px] text-[#4b463f]">
+                We are parsing your files and fetching the job posting. This
+                page updates automatically.
+              </p>
+            </div>
           </div>
-        )}
+        ) : null}
 
-        {app.status === 'failed' && (
+        {app.status === "failed" ? (
           <div className="mt-8">
             <Alert tone="error">
-              <div>
-                <p className="font-medium">Evaluation failed.</p>
-                {app.error && <p className="mt-1 text-xs">{app.error}</p>}
-              </div>
+              <p className="font-semibold">Evaluation failed.</p>
+              {app.error ? (
+                <p className="mt-1 text-[12px]">{app.error}</p>
+              ) : null}
             </Alert>
           </div>
-        )}
+        ) : null}
 
-        {evaluation && evaluation.status === 'complete' && (
+        {evaluation && evaluation.status === "complete" ? (
           <EvaluationView ev={evaluation} app={app} onCopy={copy} />
-        )}
-      </Container>
+        ) : null}
+      </div>
     </>
   );
 }
-
 
 function EvaluationView({
   ev,
@@ -207,93 +223,101 @@ function EvaluationView({
   app: ApplicationPublic;
   onCopy: (text: string | null | undefined, label: string) => void;
 }) {
-  const cv = app.files.find((f) => f.kind === 'cv');
-  const cl = app.files.find((f) => f.kind === 'cover_letter');
+  const cv = app.files.find((f) => f.kind === "cv");
+  const cl = app.files.find((f) => f.kind === "cover_letter");
   const tx = ev.contract_tx_hash;
 
   function shareLink() {
     if (!ev.content_hash) return;
     const url = `${window.location.origin}/verify/${ev.content_hash}`;
-    void onCopy(url, 'Verification link');
+    void onCopy(url, "Verification link");
   }
 
   return (
-    <div className="mt-12 flex flex-col gap-14">
-      <section className="rounded-3xl border border-[#1a1814]/10 bg-white/55 p-8 shadow-[0_20px_60px_-30px_rgba(26,24,20,0.3)] sm:p-10">
-        <div className="grid items-center gap-10 lg:grid-cols-12">
+    <div className="mt-10 flex flex-col gap-10">
+      <section className="rounded-3xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-7 shadow-sm shadow-[#1c1c17]/[0.04] sm:p-9">
+        <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">
-              Overall
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
+              Overall score
             </p>
-            <p className="mt-2 font-serif text-7xl text-[#1a1814] sm:text-8xl">
-              {ev.overall_score ?? '—'}
-            </p>
-            <p className="text-xs text-[#3a342c]/70">/ 100</p>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span
+                className="text-[72px] font-bold leading-none text-[#1c1c17] sm:text-[88px]"
+                style={{ fontFamily: "Literata, serif" }}
+              >
+                {ev.overall_score ?? "—"}
+              </span>
+              <span className="text-[14px] text-[#7c766e]">/100</span>
+            </div>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {ev.competitiveness_score !== null && (
-                <span className="rounded-full border border-[#1a1814]/15 bg-white/70 px-3 py-1 text-xs text-[#1a1814]">
+              {ev.competitiveness_score !== null ? (
+                <span className="inline-flex items-center rounded-full border border-[#cdc5bc] bg-white px-3 py-1 text-[12px] text-[#1c1c17]">
                   Competitiveness {ev.competitiveness_score}/100
                 </span>
-              )}
-              <span className="rounded-full border border-[#1a1814]/15 bg-white/70 px-3 py-1 text-xs text-[#1a1814]">
-                Backend: {ev.backend || '—'}
+              ) : null}
+              <span className="inline-flex items-center rounded-full border border-[#cdc5bc] bg-white px-3 py-1 text-[12px] text-[#1c1c17]">
+                Backend: {ev.backend || "—"}
               </span>
             </div>
 
             {tx ? (
               <button
                 type="button"
-                onClick={() => onCopy(tx, 'Transaction hash')}
-                className="mt-5 inline-flex flex-col items-start rounded-2xl border border-[#2b4f3a]/30 bg-[#2b4f3a]/10 px-4 py-3 text-left transition-colors hover:bg-[#2b4f3a]/20"
+                onClick={() => onCopy(tx, "Transaction hash")}
+                className="mt-5 inline-flex w-full max-w-md flex-col items-start gap-1 rounded-2xl border border-[#1c1c17]/20 bg-[#1c1c17]/5 px-4 py-3 text-left transition-all hover:border-[#1c1c17]/30 hover:bg-[#1c1c17]/8"
                 title="Click to copy"
               >
-                <span className="text-[10px] uppercase tracking-[0.18em] text-[#2b4f3a]">
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1c1c17]">
+                  <Icon name="shield_check" size={12} />
                   Verified on StudioNet
                 </span>
-                <span className="mt-1 font-mono text-xs text-[#2b4f3a]">
+                <span className="font-mono text-[12px] text-[#1c1c17]">
                   tx {shortHash(tx)}
                 </span>
-                {ev.content_hash && (
-                  <span className="mt-0.5 font-mono text-[10px] text-[#2b4f3a]/70">
+                {ev.content_hash ? (
+                  <span className="font-mono text-[10px] text-[#7c766e]">
                     hash {shortHash(ev.content_hash)}
                   </span>
-                )}
+                ) : null}
               </button>
             ) : ev.content_hash && ev.contract_address ? (
               <button
                 type="button"
-                onClick={() => onCopy(ev.content_hash, 'Content hash')}
-                className="mt-5 inline-flex flex-col items-start rounded-2xl border border-[#2b4f3a]/30 bg-[#2b4f3a]/10 px-4 py-3 text-left transition-colors hover:bg-[#2b4f3a]/20"
-                title="This evaluation is stored on-chain under this content hash (cached, no new transaction was written because the inputs were already evaluated). Click to copy."
+                onClick={() => onCopy(ev.content_hash, "Content hash")}
+                className="mt-5 inline-flex w-full max-w-md flex-col items-start gap-1 rounded-2xl border border-[#1c1c17]/20 bg-[#1c1c17]/5 px-4 py-3 text-left transition-all hover:border-[#1c1c17]/30 hover:bg-[#1c1c17]/8"
+                title="Cached on chain under this content hash. Click to copy."
               >
-                <span className="text-[10px] uppercase tracking-[0.18em] text-[#2b4f3a]">
+                <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1c1c17]">
+                  <Icon name="shield_check" size={12} />
                   Verified on StudioNet · cached
                 </span>
-                <span className="mt-1 font-mono text-xs text-[#2b4f3a]">
+                <span className="font-mono text-[12px] text-[#1c1c17]">
                   hash {shortHash(ev.content_hash)}
                 </span>
-                <span className="mt-0.5 text-[10px] text-[#2b4f3a]/70">
-                  Same inputs already evaluated on-chain
+                <span className="text-[10px] text-[#7c766e]">
+                  Same inputs already evaluated onchain
                 </span>
               </button>
             ) : (
-              <span className="mt-5 inline-block rounded-2xl border border-[#1a1814]/15 bg-white/60 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-[#3a342c]/80">
+              <span className="mt-5 inline-block rounded-xl border border-[#cdc5bc] bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
                 Scored locally
               </span>
             )}
 
-            {ev.content_hash && (
+            {ev.content_hash ? (
               <div className="mt-3">
                 <button
                   type="button"
                   onClick={shareLink}
-                  className="inline-flex items-center justify-center rounded-full border border-[#1a1814]/30 px-4 py-2 text-xs text-[#1a1814] hover:bg-[#1a1814]/5"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-[#cdc5bc] bg-white px-4 py-2 text-[12px] font-medium text-[#1c1c17] transition-all hover:bg-[#fcf9f1] active:scale-95"
                 >
+                  <Icon name="send" size={13} />
                   Share verification link
                 </button>
               </div>
-            )}
+            ) : null}
           </div>
 
           <div className="lg:col-span-7">
@@ -306,219 +330,283 @@ function EvaluationView({
           </div>
         </div>
 
-        {ev.summary && (
-          <p className="mt-8 max-w-3xl border-t border-[#1a1814]/10 pt-6 text-[#3a342c]">
+        {ev.summary ? (
+          <p className="mt-8 max-w-3xl border-t border-[#cdc5bc]/50 pt-6 text-[15px] leading-relaxed text-[#4b463f]">
             {ev.summary}
           </p>
-        )}
+        ) : null}
       </section>
 
-      {ev.improved_positioning && (
-        <section className="rounded-2xl border border-[#2b4f3a]/20 bg-[#2b4f3a]/5 p-6">
-          <h2 className="font-serif text-2xl text-[#1f3a2a]">Improved positioning.</h2>
-          <p className="mt-3 leading-relaxed text-[#1a1814]">
+      {ev.improved_positioning ? (
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6">
+          <h2
+            className="text-[20px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+          >
+            Improved positioning
+          </h2>
+          <p className="mt-3 text-[14px] leading-relaxed text-[#1c1c17]">
             {ev.improved_positioning}
           </p>
         </section>
-      )}
+      ) : null}
 
-      {(ev.strengths.length > 0 || ev.risks.length > 0) && (
-        <section className="grid gap-6 sm:grid-cols-2">
-          {ev.strengths.length > 0 && (
+      {(ev.strengths.length > 0 || ev.risks.length > 0) ? (
+        <section className="grid gap-5 sm:grid-cols-2">
+          {ev.strengths.length > 0 ? (
             <div>
-              <h2 className="font-serif text-2xl">Strengths.</h2>
-              <ul className="mt-4 grid gap-3">
+              <h2
+                className="text-[20px] text-[#1c1c17]"
+                style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+              >
+                Strengths
+              </h2>
+              <ul className="mt-3 grid gap-2.5">
                 {ev.strengths.map((s, i) => (
                   <li
                     key={i}
-                    className="rounded-2xl border border-[#2b4f3a]/25 bg-[#2b4f3a]/8 p-4 text-sm text-[#1f3a2a]"
+                    className="rounded-xl border border-emerald-200/70 bg-emerald-50/60 p-4 text-[13px] leading-relaxed text-[#1c1c17]"
                   >
                     {s}
                   </li>
                 ))}
               </ul>
             </div>
-          )}
-          {ev.risks.length > 0 && (
+          ) : null}
+          {ev.risks.length > 0 ? (
             <div>
-              <h2 className="font-serif text-2xl">Risks.</h2>
-              <ul className="mt-4 grid gap-3">
+              <h2
+                className="text-[20px] text-[#1c1c17]"
+                style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+              >
+                Risks
+              </h2>
+              <ul className="mt-3 grid gap-2.5">
                 {ev.risks.map((r, i) => (
                   <li
                     key={i}
-                    className="rounded-2xl border border-[#a35f1f]/30 bg-[#a35f1f]/10 p-4 text-sm text-[#a35f1f]"
+                    className="rounded-xl border border-amber-300/70 bg-amber-50/70 p-4 text-[13px] leading-relaxed text-[#1c1c17]"
                   >
                     {r}
                   </li>
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
         </section>
-      )}
+      ) : null}
 
-      {ev.recommendations.length > 0 && (
+      {ev.recommendations.length > 0 ? (
         <section>
           <div className="flex items-baseline justify-between">
-            <h2 className="font-serif text-3xl">Fix these first.</h2>
-            <span className="text-xs uppercase tracking-[0.15em] text-[#3a342c]/70">
+            <h2
+              className="text-[24px] text-[#1c1c17]"
+              style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+            >
+              Fix these first
+            </h2>
+            <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
               {ev.recommendations.length} item
-              {ev.recommendations.length === 1 ? '' : 's'}
+              {ev.recommendations.length === 1 ? "" : "s"}
             </span>
           </div>
-          <ul className="mt-5 grid gap-3">
+          <ul className="mt-4 grid gap-3">
             {ev.recommendations.map((r, i) => (
               <li
                 key={i}
-                className="flex items-start gap-4 rounded-2xl border border-[#1a1814]/10 bg-white/60 p-5"
+                className="flex items-start gap-4 rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5"
               >
-                <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#2b4f3a]/15 font-serif text-sm text-[#2b4f3a]">
+                <span
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c17] text-[13px] font-bold text-white"
+                  style={{ fontFamily: "Literata, serif" }}
+                >
                   {i + 1}
                 </span>
-                <p className="text-sm leading-relaxed text-[#1a1814]">{r}</p>
+                <p className="text-[14px] leading-relaxed text-[#1c1c17]">{r}</p>
               </li>
             ))}
           </ul>
         </section>
-      )}
+      ) : null}
 
-      {ev.missing_keywords.length > 0 && (
+      {ev.missing_keywords.length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Missing keywords.</h2>
-          <p className="mt-2 text-sm text-[#3a342c]">
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Missing keywords
+          </h2>
+          <p className="mt-2 text-[13px] text-[#7c766e]">
             These appear in the job posting but not in your CV.
           </p>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <div className="mt-4 flex flex-wrap gap-2">
             {ev.missing_keywords.map((kw) => (
               <span
                 key={kw}
-                className="rounded-full border border-[#1a1814]/15 bg-white/60 px-3 py-1 text-xs text-[#1a1814]"
+                className="rounded-full border border-[#cdc5bc] bg-white px-3 py-1 text-[12px] text-[#1c1c17]"
               >
                 {kw}
               </span>
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {ev.missing_skills.length > 0 && (
+      {ev.missing_skills.length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Missing skills.</h2>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Missing skills
+          </h2>
+          <div className="mt-4 flex flex-wrap gap-2">
             {ev.missing_skills.map((s) => (
               <span
                 key={s}
-                className="rounded-full border border-[#1a1814]/15 bg-white/60 px-3 py-1 text-xs text-[#1a1814]"
+                className="rounded-full border border-[#cdc5bc] bg-white px-3 py-1 text-[12px] text-[#1c1c17]"
               >
                 {s}
               </span>
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {ev.weak_statements.length > 0 && (
+      {ev.weak_statements.length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Weak statements.</h2>
-          <ul className="mt-5 grid gap-3">
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Weak statements
+          </h2>
+          <ul className="mt-4 grid gap-2.5">
             {ev.weak_statements.map((w, i) => (
               <li
                 key={i}
-                className="rounded-2xl border border-[#a35f1f]/30 bg-[#a35f1f]/10 p-5 text-sm text-[#a35f1f]"
+                className="rounded-xl border border-amber-300/70 bg-amber-50/70 p-5 text-[13px] leading-relaxed text-[#1c1c17]"
               >
                 {w}
               </li>
             ))}
           </ul>
         </section>
-      )}
+      ) : null}
 
-      {ev.company_alignment_notes.length > 0 && (
+      {ev.company_alignment_notes.length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Company alignment.</h2>
-          <ul className="mt-5 grid gap-3">
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Company alignment
+          </h2>
+          <ul className="mt-4 grid gap-2.5">
             {ev.company_alignment_notes.map((c, i) => (
               <li
                 key={i}
-                className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-5 text-sm text-[#1a1814]"
+                className="rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5 text-[13px] leading-relaxed text-[#1c1c17]"
               >
                 {c}
               </li>
             ))}
           </ul>
         </section>
-      )}
+      ) : null}
 
-      {ev.rationale && Object.keys(ev.rationale).length > 0 && (
+      {ev.rationale && Object.keys(ev.rationale).length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Score rationale.</h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Score rationale
+          </h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {Object.entries(ev.rationale)
               .filter(([, v]) => Boolean(v))
               .map(([k, v]) => (
                 <div
                   key={k}
-                  className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4 text-sm"
+                  className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4"
                 >
-                  <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">
-                    {k.replace(/_/g, ' ')}
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+                    {k.replace(/_/g, " ")}
                   </p>
-                  <p className="mt-2 text-[#1a1814]">{v as string}</p>
+                  <p className="mt-2 text-[13px] leading-relaxed text-[#1c1c17]">
+                    {v as string}
+                  </p>
                 </div>
               ))}
           </div>
         </section>
-      )}
+      ) : null}
 
       <section>
-        <h2 className="font-serif text-3xl">Verification.</h2>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4">
-            <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Content hash</p>
+        <h2
+          className="text-[22px] text-[#1c1c17]"
+          style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+        >
+          Verification
+        </h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+              Content hash
+            </p>
             <div className="mt-2 flex items-center justify-between gap-3">
-              <p className="break-all font-mono text-xs text-[#1a1814]">
-                {ev.content_hash || '—'}
+              <p className="break-all font-mono text-[11px] text-[#1c1c17]">
+                {ev.content_hash || "—"}
               </p>
-              {ev.content_hash && (
+              {ev.content_hash ? (
                 <button
                   type="button"
-                  onClick={() => onCopy(ev.content_hash, 'Content hash')}
-                  className="shrink-0 rounded-full border border-[#1a1814]/20 px-3 py-1 text-xs text-[#1a1814] hover:bg-[#1a1814]/5"
+                  onClick={() => onCopy(ev.content_hash, "Content hash")}
+                  className="shrink-0 rounded-lg border border-[#cdc5bc] bg-white px-3 py-1 text-[11px] font-medium text-[#1c1c17] hover:bg-[#fcf9f1]"
                 >
                   Copy
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
-          <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4">
-            <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Contract address</p>
+          <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+              Contract address
+            </p>
             <div className="mt-2 flex items-center justify-between gap-3">
-              <p className="break-all font-mono text-xs text-[#1a1814]">
-                {ev.contract_address || '—'}
+              <p className="break-all font-mono text-[11px] text-[#1c1c17]">
+                {ev.contract_address || "—"}
               </p>
-              {ev.contract_address && (
+              {ev.contract_address ? (
                 <button
                   type="button"
-                  onClick={() => onCopy(ev.contract_address, 'Contract address')}
-                  className="shrink-0 rounded-full border border-[#1a1814]/20 px-3 py-1 text-xs text-[#1a1814] hover:bg-[#1a1814]/5"
+                  onClick={() => onCopy(ev.contract_address, "Contract address")}
+                  className="shrink-0 rounded-lg border border-[#cdc5bc] bg-white px-3 py-1 text-[11px] font-medium text-[#1c1c17] hover:bg-[#fcf9f1]"
                 >
                   Copy
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
       </section>
 
-      {(cv || cl) && (
+      {(cv || cl) ? (
         <section>
-          <h2 className="font-serif text-3xl">Files.</h2>
-          <div className="mt-5 grid gap-4 sm:grid-cols-2">
-            {cv && <FileSummary kind="CV" file={cv} />}
-            {cl && <FileSummary kind="Cover letter" file={cl} />}
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Files
+          </h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {cv ? <FileSummary kind="CV" file={cv} /> : null}
+            {cl ? <FileSummary kind="Cover letter" file={cl} /> : null}
           </div>
         </section>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -535,17 +623,22 @@ function FileSummary({
   };
 }) {
   return (
-    <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-5">
-      <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">
-        {kind}
-      </p>
-      <p className="mt-2 truncate font-medium text-[#1a1814]">
-        {file.original_filename}
-      </p>
-      <p className="mt-1 text-xs text-[#3a342c]/70">
-        {(file.detected_kind || 'unknown').toUpperCase()} ·{' '}
-        {(file.byte_size / 1024).toFixed(1)} KB
-      </p>
+    <div className="flex items-start gap-3 rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#1c1c17] text-white">
+        <Icon name="document" size={18} />
+      </span>
+      <div className="min-w-0">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+          {kind}
+        </p>
+        <p className="mt-1 truncate text-[13px] font-semibold text-[#1c1c17]">
+          {file.original_filename}
+        </p>
+        <p className="mt-0.5 text-[11px] text-[#7c766e]">
+          {(file.detected_kind || "unknown").toUpperCase()} ·{" "}
+          {(file.byte_size / 1024).toFixed(1)} KB
+        </p>
+      </div>
     </div>
   );
 }

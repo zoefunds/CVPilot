@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ApplicationsList } from "@/components/dashboard/ApplicationsList";
 import { Icon, type IconName } from "@/components/icons/Icon";
+import { WelcomeModal } from "@/components/dashboard/WelcomeModal";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useAuth } from "@/contexts/AuthContext";
 import { LOW_BALANCE_WEI, useWallet } from "@/contexts/WalletContext";
@@ -64,6 +65,7 @@ export default function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
+      <WelcomeModal />
       <div className="mb-8">
         <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
           {greeting()}

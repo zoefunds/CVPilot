@@ -1,6 +1,5 @@
 """
 Factory that returns the configured storage backend.
-Today: local. Tomorrow: switch on settings.storage_backend.
 """
 
 from __future__ import annotations
@@ -16,4 +15,10 @@ from services.storage.local import LocalFileStorage
 def get_storage() -> FileStorage:
     if settings.storage_backend == "local":
         return LocalFileStorage()
-    raise NotImplementedError(f"Unsupported storage backend: {settings.storage_backend}")
+    if settings.storage_backend == "s3":
+        # Lazy import so boto3 only loads when S3 is actually selected.
+        from services.storage.s3 import S3Storage
+        return S3Storage()
+    raise NotImplementedError(
+        f"Unsupported storage backend: {settings.storage_backend}"
+    )

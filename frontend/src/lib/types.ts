@@ -86,6 +86,7 @@ export interface FileAssetPublic {
 }
 
 export interface ApplicationPublic {
+  user_id: string;
   id: string;
   job_url: string;
   job_final_url: string | null;

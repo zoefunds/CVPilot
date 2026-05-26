@@ -205,3 +205,14 @@ export interface AdminApplicationListItem {
   has_evaluation: boolean;
   competitiveness: number | null;
 }
+
+export interface JobIngest {
+  url: string;
+  title: string | null;
+  company: string | null;
+  location: string | null;
+  employment_type: string | null;
+  description: string | null;
+  fetched_at: string;
+  cache_hit: boolean;
+}

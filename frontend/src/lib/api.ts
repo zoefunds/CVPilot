@@ -1,6 +1,7 @@
 import { apiBaseUrl } from './brand';
 import { tokenStorage } from './authStorage';
 import type {
+  JobIngest,
   AdminApplicationListItem,
   AdminStats,
   AdminUserListItem,
@@ -177,4 +178,12 @@ export const adminApi = {
   },
   getApplication(id: string): Promise<ApplicationPublic> { return api<ApplicationPublic>(`/admin/applications/${id}`); },
   getEvaluation(id: string): Promise<EvaluationPublic> { return api<EvaluationPublic>(`/admin/applications/${id}/evaluation`); },
+};
+export const jobsApi = {
+  ingest(url: string): Promise<JobIngest> {
+    return api<JobIngest>('/jobs/ingest', {
+      method: 'POST',
+      body: JSON.stringify({ url }),
+    });
+  },
 };

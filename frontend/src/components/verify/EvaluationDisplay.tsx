@@ -1,35 +1,42 @@
-'use client';
+"use client";
 
-import { ScoreGauge } from '@/components/ui/ScoreGauge';
-import type { PublicEvaluation } from '@/lib/types';
+import { ScoreGauge } from "@/components/ui/ScoreGauge";
+import { Icon } from "@/components/icons/Icon";
+import type { PublicEvaluation } from "@/lib/types";
 
 function shortHash(h: string | null | undefined): string {
-  if (!h) return '';
+  if (!h) return "";
   if (h.length <= 14) return h;
   return `${h.slice(0, 8)}…${h.slice(-6)}`;
 }
 
 export function EvaluationDisplay({ ev }: { ev: PublicEvaluation }) {
   return (
-    <div className="flex flex-col gap-14">
-      <section className="rounded-3xl border border-[#1a1814]/10 bg-white/55 p-8 shadow-[0_20px_60px_-30px_rgba(26,24,20,0.3)] sm:p-10">
-        <div className="grid items-center gap-10 lg:grid-cols-12">
+    <div className="flex flex-col gap-10">
+      <section className="rounded-3xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-7 shadow-sm shadow-[#1c1c17]/[0.04] sm:p-9">
+        <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-5">
-            <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">
-              Overall
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
+              Overall score
             </p>
-            <p className="mt-2 font-serif text-7xl text-[#1a1814] sm:text-8xl">
-              {ev.overall_score ?? '—'}
-            </p>
-            <p className="text-xs text-[#3a342c]/70">/ 100</p>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span
+                className="text-[72px] font-bold leading-none text-[#1c1c17] sm:text-[88px]"
+                style={{ fontFamily: "Literata, serif" }}
+              >
+                {ev.overall_score ?? "—"}
+              </span>
+              <span className="text-[14px] text-[#7c766e]">/100</span>
+            </div>
 
             <div className="mt-5 flex flex-wrap gap-2">
-              {ev.competitiveness_score !== null && (
-                <span className="rounded-full border border-[#1a1814]/15 bg-white/70 px-3 py-1 text-xs text-[#1a1814]">
+              {ev.competitiveness_score !== null ? (
+                <span className="inline-flex items-center rounded-full border border-[#cdc5bc] bg-white px-3 py-1 text-[12px] text-[#1c1c17]">
                   Competitiveness {ev.competitiveness_score}/100
                 </span>
-              )}
-              <span className="rounded-full bg-[#2b4f3a]/12 px-3 py-1 text-xs text-[#2b4f3a]">
+              ) : null}
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-800">
+                <Icon name="shield_check" size={12} />
                 Verified on StudioNet
               </span>
             </div>
@@ -45,102 +52,175 @@ export function EvaluationDisplay({ ev }: { ev: PublicEvaluation }) {
           </div>
         </div>
 
-        {ev.summary && (
-          <p className="mt-8 max-w-3xl border-t border-[#1a1814]/10 pt-6 text-[#3a342c]">
+        {ev.summary ? (
+          <p className="mt-8 max-w-3xl border-t border-[#cdc5bc]/50 pt-6 text-[15px] leading-relaxed text-[#4b463f]">
             {ev.summary}
           </p>
-        )}
+        ) : null}
       </section>
 
-      {ev.improved_positioning && (
-        <section className="rounded-2xl border border-[#2b4f3a]/20 bg-[#2b4f3a]/5 p-6">
-          <h2 className="font-serif text-2xl text-[#1f3a2a]">Improved positioning.</h2>
-          <p className="mt-3 leading-relaxed text-[#1a1814]">{ev.improved_positioning}</p>
+      {ev.improved_positioning ? (
+        <section className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6">
+          <h2
+            className="text-[20px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+          >
+            Improved positioning
+          </h2>
+          <p className="mt-3 text-[14px] leading-relaxed text-[#1c1c17]">
+            {ev.improved_positioning}
+          </p>
         </section>
-      )}
+      ) : null}
 
-      {(ev.strengths.length > 0 || ev.risks.length > 0) && (
-        <section className="grid gap-6 sm:grid-cols-2">
-          {ev.strengths.length > 0 && (
+      {(ev.strengths.length > 0 || ev.risks.length > 0) ? (
+        <section className="grid gap-5 sm:grid-cols-2">
+          {ev.strengths.length > 0 ? (
             <div>
-              <h2 className="font-serif text-2xl">Strengths.</h2>
-              <ul className="mt-4 grid gap-3">
+              <h2
+                className="text-[20px] text-[#1c1c17]"
+                style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+              >
+                Strengths
+              </h2>
+              <ul className="mt-3 grid gap-2.5">
                 {ev.strengths.map((s, i) => (
-                  <li key={i} className="rounded-2xl border border-[#2b4f3a]/25 bg-[#2b4f3a]/8 p-4 text-sm text-[#1f3a2a]">{s}</li>
+                  <li
+                    key={i}
+                    className="rounded-xl border border-emerald-200/70 bg-emerald-50/60 p-4 text-[13px] leading-relaxed text-[#1c1c17]"
+                  >
+                    {s}
+                  </li>
                 ))}
               </ul>
             </div>
-          )}
-          {ev.risks.length > 0 && (
+          ) : null}
+          {ev.risks.length > 0 ? (
             <div>
-              <h2 className="font-serif text-2xl">Risks.</h2>
-              <ul className="mt-4 grid gap-3">
+              <h2
+                className="text-[20px] text-[#1c1c17]"
+                style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+              >
+                Risks
+              </h2>
+              <ul className="mt-3 grid gap-2.5">
                 {ev.risks.map((r, i) => (
-                  <li key={i} className="rounded-2xl border border-[#a35f1f]/30 bg-[#a35f1f]/10 p-4 text-sm text-[#a35f1f]">{r}</li>
+                  <li
+                    key={i}
+                    className="rounded-xl border border-amber-300/70 bg-amber-50/70 p-4 text-[13px] leading-relaxed text-[#1c1c17]"
+                  >
+                    {r}
+                  </li>
                 ))}
               </ul>
             </div>
-          )}
+          ) : null}
         </section>
-      )}
+      ) : null}
 
-      {ev.recommendations.length > 0 && (
+      {ev.recommendations.length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Recommendations.</h2>
-          <ul className="mt-5 grid gap-3">
+          <h2
+            className="text-[24px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Recommendations
+          </h2>
+          <ul className="mt-4 grid gap-3">
             {ev.recommendations.map((r, i) => (
-              <li key={i} className="flex items-start gap-4 rounded-2xl border border-[#1a1814]/10 bg-white/60 p-5">
-                <span className="mt-0.5 grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#2b4f3a]/15 font-serif text-sm text-[#2b4f3a]">
+              <li
+                key={i}
+                className="flex items-start gap-4 rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5"
+              >
+                <span
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c17] text-[13px] font-bold text-white"
+                  style={{ fontFamily: "Literata, serif" }}
+                >
                   {i + 1}
                 </span>
-                <p className="text-sm leading-relaxed text-[#1a1814]">{r}</p>
+                <p className="text-[14px] leading-relaxed text-[#1c1c17]">{r}</p>
               </li>
             ))}
           </ul>
         </section>
-      )}
+      ) : null}
 
-      {ev.missing_keywords.length > 0 && (
+      {ev.missing_keywords.length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Missing keywords.</h2>
-          <div className="mt-5 flex flex-wrap gap-2">
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Missing keywords
+          </h2>
+          <div className="mt-4 flex flex-wrap gap-2">
             {ev.missing_keywords.map((kw) => (
-              <span key={kw} className="rounded-full border border-[#1a1814]/15 bg-white/60 px-3 py-1 text-xs text-[#1a1814]">{kw}</span>
+              <span
+                key={kw}
+                className="rounded-full border border-[#cdc5bc] bg-white px-3 py-1 text-[12px] text-[#1c1c17]"
+              >
+                {kw}
+              </span>
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
-      {ev.rationale && Object.keys(ev.rationale).length > 0 && (
+      {ev.rationale && Object.keys(ev.rationale).length > 0 ? (
         <section>
-          <h2 className="font-serif text-3xl">Score rationale.</h2>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Score rationale
+          </h2>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {Object.entries(ev.rationale)
               .filter(([, v]) => Boolean(v))
               .map(([k, v]) => (
-                <div key={k} className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4 text-sm">
-                  <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">{k.replace(/_/g, ' ')}</p>
-                  <p className="mt-2 text-[#1a1814]">{v as string}</p>
+                <div
+                  key={k}
+                  className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4"
+                >
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+                    {k.replace(/_/g, " ")}
+                  </p>
+                  <p className="mt-2 text-[13px] leading-relaxed text-[#1c1c17]">
+                    {v as string}
+                  </p>
                 </div>
               ))}
           </div>
         </section>
-      )}
+      ) : null}
 
       <section>
-        <h2 className="font-serif text-3xl">Verification.</h2>
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4">
-            <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Content hash</p>
-            <p className="mt-2 break-all font-mono text-xs text-[#1a1814]">{ev.content_hash}</p>
-            <p className="mt-2 text-[11px] text-[#3a342c]/70">
+        <h2
+          className="text-[22px] text-[#1c1c17]"
+          style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+        >
+          Verification
+        </h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+              Content hash
+            </p>
+            <p className="mt-2 break-all font-mono text-[11px] text-[#1c1c17]">
+              {ev.content_hash}
+            </p>
+            <p className="mt-2 text-[11px] text-[#7c766e]">
               sha256 of the application inputs ({shortHash(ev.content_hash)}).
             </p>
           </div>
-          <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4">
-            <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Contract address</p>
-            <p className="mt-2 break-all font-mono text-xs text-[#1a1814]">{ev.contract_address}</p>
-            <p className="mt-2 text-[11px] text-[#3a342c]/70">
+          <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+              Contract address
+            </p>
+            <p className="mt-2 break-all font-mono text-[11px] text-[#1c1c17]">
+              {ev.contract_address}
+            </p>
+            <p className="mt-2 text-[11px] text-[#7c766e]">
               CVPilotEvaluator on GenLayer StudioNet ({shortHash(ev.contract_address)}).
             </p>
           </div>

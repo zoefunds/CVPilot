@@ -1,0 +1,53 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# Node / frontend
+frontend/
+node_modules/
+.next/
+
+# Git
+.git/
+.github/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+
+# Local data
+*.db
+*.sqlite
+_alembic_seed.db
+uploads/
+storage_local/
+data/
+
+# Env files
+.env
+.env.local
+.env.*.local
+
+# Docs / tests not needed at runtime
+docs/
+tests/
+*.md
+!README.md
+
+# Build outputs
+dist/
+build/
+
+# Misc
+*.log
+.coverage
+htmlcov/

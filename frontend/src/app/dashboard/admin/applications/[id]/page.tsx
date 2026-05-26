@@ -1,20 +1,17 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import { ScoreGauge } from '@/components/ui/ScoreGauge';
-import { StatusBadge } from '@/components/dashboard/StatusBadge';
-import { Alert } from '@/components/ui/Alert';
-import { Container } from '@/components/ui/Container';
-import { ApiError, adminApi } from '@/lib/api';
-import type {
-  ApplicationPublic,
-  EvaluationPublic,
-} from '@/lib/types';
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ScoreGauge } from "@/components/ui/ScoreGauge";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { Alert } from "@/components/ui/Alert";
+import { Icon } from "@/components/icons/Icon";
+import { ApiError, adminApi } from "@/lib/api";
+import type { ApplicationPublic, EvaluationPublic } from "@/lib/types";
 
 function shortHash(h: string | null | undefined): string {
-  if (!h) return '';
+  if (!h) return "";
   if (h.length <= 14) return h;
   return `${h.slice(0, 8)}…${h.slice(-6)}`;
 }
@@ -51,7 +48,8 @@ export default function AdminApplicationDetailPage() {
           }
         }
       } catch (e) {
-        if (alive) setError(e instanceof ApiError ? e.message : 'Could not load.');
+        if (alive)
+          setError(e instanceof ApiError ? e.message : "Could not load.");
       }
     })();
     return () => {
@@ -61,49 +59,57 @@ export default function AdminApplicationDetailPage() {
 
   if (error) {
     return (
-      <Container className="py-14">
+      <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
         <Alert tone="error">{error}</Alert>
-        <p className="mt-6 text-sm">
-          <Link href="/dashboard/admin/applications" className="underline">
-            Back to applications
+        <p className="mt-6 text-[13px]">
+          <Link
+            href="/dashboard/admin/applications"
+            className="font-semibold text-[#1c1c17] underline underline-offset-4 hover:text-[#332f28]"
+          >
+            ← Back to applications
           </Link>
         </p>
-      </Container>
+      </div>
     );
   }
 
   if (!app) {
     return (
-      <Container className="py-14">
-        <p className="text-sm text-[#3a342c]">Loading.</p>
-      </Container>
+      <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
+        <div className="rounded-2xl border border-dashed border-[#cdc5bc]/70 bg-[#fcf9f1]/50 p-10 text-center text-[13px] text-[#7c766e]">
+          Loading…
+        </div>
+      </div>
     );
   }
 
   const tx = evaluation?.contract_tx_hash;
 
   return (
-    <Container className="py-14">
+    <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
       <Link
         href="/dashboard/admin/applications"
-        className="text-xs uppercase tracking-[0.15em] text-[#3a342c] hover:text-[#1a1814]"
+        className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4b463f] hover:text-[#1c1c17]"
       >
         ← All applications
       </Link>
 
       <div className="mt-4 flex flex-wrap items-baseline justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
             Admin view
           </p>
-          <h1 className="mt-2 font-serif text-4xl sm:text-5xl">
-            {app.job_title || 'Untitled posting'}
+          <h1
+            className="mt-2 text-[30px] leading-tight tracking-tight text-[#1c1c17] md:text-[40px]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            {app.job_title || "Untitled posting"}
           </h1>
           <a
             href={app.job_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-2 inline-block max-w-full truncate text-sm text-[#3a342c]/80 hover:text-[#1a1814]"
+            className="mt-2 inline-block max-w-full truncate text-[13px] text-[#4b463f] hover:text-[#1c1c17] hover:underline"
           >
             {app.job_url}
           </a>
@@ -111,52 +117,70 @@ export default function AdminApplicationDetailPage() {
         <StatusBadge status={app.status} />
       </div>
 
-      <section className="mt-8 grid gap-4 sm:grid-cols-3">
-        <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4">
-          <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">User ID</p>
-          <p className="mt-1 break-all font-mono text-xs text-[#1a1814]">{app.user_id}</p>
+      <section className="mt-8 grid gap-3 sm:grid-cols-3">
+        <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+            User ID
+          </p>
+          <p className="mt-1.5 break-all font-mono text-[11px] text-[#1c1c17]">
+            {app.user_id}
+          </p>
         </div>
-        <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4">
-          <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Created</p>
-          <p className="mt-1 text-sm text-[#1a1814]">{fmt(app.created_at)}</p>
+        <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+            Created
+          </p>
+          <p className="mt-1.5 text-[13px] text-[#1c1c17]">
+            {fmt(app.created_at)}
+          </p>
         </div>
-        <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4">
-          <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">Updated</p>
-          <p className="mt-1 text-sm text-[#1a1814]">{fmt(app.updated_at)}</p>
+        <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+            Updated
+          </p>
+          <p className="mt-1.5 text-[13px] text-[#1c1c17]">
+            {fmt(app.updated_at)}
+          </p>
         </div>
       </section>
 
-      {app.status === 'failed' && app.error && (
+      {app.status === "failed" && app.error ? (
         <div className="mt-8">
           <Alert tone="error">
-            <p className="font-medium">Failure reason</p>
-            <p className="mt-1 text-xs">{app.error}</p>
+            <p className="font-semibold">Failure reason</p>
+            <p className="mt-1 text-[12px]">{app.error}</p>
           </Alert>
         </div>
-      )}
+      ) : null}
 
-      {evaluation && evaluation.status === 'complete' && (
-        <section className="mt-10 rounded-3xl border border-[#1a1814]/10 bg-white/55 p-8">
-          <div className="grid items-center gap-10 lg:grid-cols-12">
+      {evaluation && evaluation.status === "complete" ? (
+        <section className="mt-10 rounded-3xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-7 shadow-sm shadow-[#1c1c17]/[0.04] sm:p-9">
+          <div className="grid items-center gap-8 lg:grid-cols-12 lg:gap-10">
             <div className="lg:col-span-5">
-              <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
                 Competitiveness
               </p>
-              <p className="mt-2 font-serif text-7xl text-[#1a1814]">
-                {evaluation.competitiveness_score ?? '—'}
-              </p>
-              <p className="text-xs text-[#3a342c]/70">/ 100</p>
+              <div className="mt-2 flex items-baseline gap-2">
+                <span
+                  className="text-[64px] font-bold leading-none text-[#1c1c17] sm:text-[80px]"
+                  style={{ fontFamily: "Literata, serif" }}
+                >
+                  {evaluation.competitiveness_score ?? "—"}
+                </span>
+                <span className="text-[14px] text-[#7c766e]">/100</span>
+              </div>
               {tx ? (
-                <span className="mt-5 inline-flex flex-col rounded-2xl border border-[#2b4f3a]/30 bg-[#2b4f3a]/10 px-4 py-3">
-                  <span className="text-[10px] uppercase tracking-[0.18em] text-[#2b4f3a]">
+                <span className="mt-5 inline-flex flex-col items-start gap-1 rounded-2xl border border-[#1c1c17]/20 bg-[#1c1c17]/5 px-4 py-3">
+                  <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#1c1c17]">
+                    <Icon name="shield_check" size={12} />
                     Verified on StudioNet
                   </span>
-                  <span className="mt-1 font-mono text-xs text-[#2b4f3a]">
+                  <span className="font-mono text-[12px] text-[#1c1c17]">
                     {shortHash(tx)}
                   </span>
                 </span>
               ) : (
-                <span className="mt-5 inline-block rounded-2xl border border-[#1a1814]/15 bg-white/60 px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-[#3a342c]/80">
+                <span className="mt-5 inline-block rounded-xl border border-[#cdc5bc] bg-white px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
                   Scored locally
                 </span>
               )}
@@ -170,29 +194,40 @@ export default function AdminApplicationDetailPage() {
               </div>
             </div>
           </div>
-          {evaluation.summary && (
-            <p className="mt-8 border-t border-[#1a1814]/10 pt-6 text-[#3a342c]">
+          {evaluation.summary ? (
+            <p className="mt-8 border-t border-[#cdc5bc]/50 pt-6 text-[15px] leading-relaxed text-[#4b463f]">
               {evaluation.summary}
             </p>
-          )}
+          ) : null}
         </section>
-      )}
+      ) : null}
 
-      {evaluation && evaluation.recommendations.length > 0 && (
+      {evaluation && evaluation.recommendations.length > 0 ? (
         <section className="mt-10">
-          <h2 className="font-serif text-2xl">Recommendations</h2>
+          <h2
+            className="text-[22px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+          >
+            Recommendations
+          </h2>
           <ul className="mt-4 grid gap-3">
             {evaluation.recommendations.map((r, i) => (
               <li
                 key={i}
-                className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-4 text-sm text-[#1a1814]"
+                className="flex items-start gap-4 rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5"
               >
-                {r}
+                <span
+                  className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#1c1c17] text-[13px] font-bold text-white"
+                  style={{ fontFamily: "Literata, serif" }}
+                >
+                  {i + 1}
+                </span>
+                <p className="text-[14px] leading-relaxed text-[#1c1c17]">{r}</p>
               </li>
             ))}
           </ul>
         </section>
-      )}
-    </Container>
+      ) : null}
+    </div>
   );
 }

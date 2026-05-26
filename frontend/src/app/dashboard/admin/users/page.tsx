@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { Alert } from '@/components/ui/Alert';
-import { Container } from '@/components/ui/Container';
-import { useToast } from '@/contexts/ToastContext';
-import { ApiError, adminApi } from '@/lib/api';
-import type { AdminUserListItem } from '@/lib/types';
+import { useEffect, useState } from "react";
+import { Alert } from "@/components/ui/Alert";
+import { Icon } from "@/components/icons/Icon";
+import { useToast } from "@/contexts/ToastContext";
+import { ApiError, adminApi } from "@/lib/api";
+import type { AdminUserListItem } from "@/lib/types";
 
 function fmt(s: string | null | undefined): string {
-  if (!s) return '—';
+  if (!s) return "—";
   try {
     return new Date(s).toLocaleString();
   } catch {
@@ -28,7 +28,8 @@ export default function AdminUsersPage() {
         const u = await adminApi.listUsers(200);
         if (alive) setUsers(u);
       } catch (e) {
-        if (alive) setError(e instanceof ApiError ? e.message : 'Could not load.');
+        if (alive)
+          setError(e instanceof ApiError ? e.message : "Could not load.");
       }
     })();
     return () => {
@@ -39,76 +40,91 @@ export default function AdminUsersPage() {
   async function copy(v: string, label: string) {
     try {
       await navigator.clipboard.writeText(v);
-      push({ tone: 'success', title: 'Copied', message: `${label} on clipboard.` });
+      push({
+        tone: "success",
+        title: "Copied",
+        message: `${label} on clipboard.`,
+      });
     } catch {
-      push({ tone: 'error', title: 'Could not copy.' });
+      push({ tone: "error", title: "Could not copy." });
     }
   }
 
   return (
-    <Container className="py-14">
-      <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">Admin</p>
-      <h1 className="mt-2 font-serif text-5xl">All users.</h1>
+    <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
+      <div className="mb-8">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
+          Admin
+        </p>
+        <h1
+          className="mt-2 text-[34px] tracking-tight text-[#1c1c17] md:text-[42px]"
+          style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+        >
+          All users
+        </h1>
+      </div>
 
-      {error && (
-        <div className="mt-6">
+      {error ? (
+        <div className="mb-6">
           <Alert tone="error">{error}</Alert>
         </div>
-      )}
+      ) : null}
 
-      <div className="mt-8 overflow-hidden rounded-2xl border border-[#1a1814]/10 bg-white/40">
+      <div className="overflow-hidden rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1]">
         {users === null ? (
-          <p className="p-6 text-sm text-[#3a342c]">Loading.</p>
+          <p className="p-6 text-[13px] text-[#7c766e]">Loading…</p>
         ) : users.length === 0 ? (
-          <p className="p-6 text-sm text-[#3a342c]">No users yet.</p>
+          <p className="p-6 text-[13px] text-[#7c766e]">No users yet.</p>
         ) : (
-          <ul className="divide-y divide-[#d9d5c8]">
+          <ul className="divide-y divide-[#cdc5bc]/40">
             {users.map((u) => (
               <li key={u.id} className="px-5 py-4">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-medium text-[#1a1814]">
+                      <p className="truncate text-[14px] font-semibold text-[#1c1c17]">
                         {u.email}
                       </p>
-                      {u.is_superuser && (
-                        <span className="rounded-full bg-[#2b4f3a]/12 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-[#2b4f3a]">
+                      {u.is_superuser ? (
+                        <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-800">
                           Admin
                         </span>
-                      )}
-                      {!u.is_active && (
-                        <span className="rounded-full bg-[#9b2226]/12 px-2 py-0.5 text-[10px] uppercase tracking-[0.15em] text-[#9b2226]">
+                      ) : null}
+                      {!u.is_active ? (
+                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-red-800">
                           Disabled
                         </span>
-                      )}
+                      ) : null}
                     </div>
-                    <p className="mt-0.5 text-xs text-[#3a342c]/70">
-                      {u.full_name || 'No name'}
+                    <p className="mt-0.5 text-[12px] text-[#7c766e]">
+                      {u.full_name || "No name"}
                     </p>
-                    <p className="mt-2 font-mono text-[10px] text-[#3a342c]/60">
+                    <p className="mt-2 font-mono text-[10px] text-[#a8a298]">
                       {u.id}
                     </p>
                   </div>
-                  <div className="flex flex-col items-end gap-1 text-xs text-[#3a342c]">
-                    <span>{u.application_count} applications</span>
-                    <span className="text-[#3a342c]/70">
+                  <div className="flex flex-col items-end gap-1 text-[11px] text-[#4b463f]">
+                    <span className="font-medium text-[#1c1c17]">
+                      {u.application_count} applications
+                    </span>
+                    <span className="text-[#7c766e]">
                       Joined {fmt(u.created_at)}
                     </span>
-                    <span className="text-[#3a342c]/70">
+                    <span className="text-[#7c766e]">
                       Last app {fmt(u.last_application_at)}
                     </span>
-                    <div className="mt-1 flex gap-2">
+                    <div className="mt-1 flex gap-1.5">
                       <button
                         type="button"
-                        onClick={() => copy(u.email, 'Email')}
-                        className="rounded-full border border-[#1a1814]/20 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.15em] text-[#1a1814] hover:bg-[#1a1814]/5"
+                        onClick={() => copy(u.email, "Email")}
+                        className="rounded-lg border border-[#cdc5bc] bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1c1c17] hover:bg-[#fcf9f1]"
                       >
                         Copy email
                       </button>
                       <button
                         type="button"
-                        onClick={() => copy(u.id, 'Account ID')}
-                        className="rounded-full border border-[#1a1814]/20 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.15em] text-[#1a1814] hover:bg-[#1a1814]/5"
+                        onClick={() => copy(u.id, "Account ID")}
+                        className="rounded-lg border border-[#cdc5bc] bg-white px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#1c1c17] hover:bg-[#fcf9f1]"
                       >
                         Copy ID
                       </button>
@@ -120,6 +136,6 @@ export default function AdminUsersPage() {
           </ul>
         )}
       </div>
-    </Container>
+    </div>
   );
 }

@@ -1,34 +1,48 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { StatusBadge } from '@/components/dashboard/StatusBadge';
-import { Alert } from '@/components/ui/Alert';
-import { Container } from '@/components/ui/Container';
-import { ApiError, adminApi } from '@/lib/api';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { Alert } from "@/components/ui/Alert";
+import { Icon, type IconName } from "@/components/icons/Icon";
+import { ApiError, adminApi } from "@/lib/api";
 import type {
   AdminApplicationListItem,
   AdminStats,
   AdminUserListItem,
   ApplicationStatus,
-} from '@/lib/types';
+} from "@/lib/types";
 
 function StatTile({
   label,
   value,
   hint,
+  icon,
 }: {
   label: string;
   value: string | number;
   hint?: string;
+  icon: IconName;
 }) {
   return (
-    <div className="rounded-2xl border border-[#1a1814]/10 bg-white/60 p-5">
-      <p className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">
-        {label}
-      </p>
-      <p className="mt-2 font-serif text-4xl text-[#1a1814]">{value}</p>
-      {hint && <p className="mt-1 text-xs text-[#3a342c]/70">{hint}</p>}
+    <div className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-5">
+      <div className="flex items-center justify-between">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">
+          {label}
+        </span>
+        <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#1c1c17]/8 text-[#1c1c17]">
+          <Icon name={icon} size={16} />
+        </span>
+      </div>
+      <div
+        className="mt-3 text-[28px] font-bold leading-none text-[#1c1c17]"
+        style={{ fontFamily: "Literata, serif" }}
+      >
+        {value}
+      </div>
+      {hint ? (
+        <p className="mt-1.5 text-[11px] text-[#7c766e]">{hint}</p>
+      ) : null}
     </div>
   );
 }
@@ -54,7 +68,9 @@ export default function AdminOverviewPage() {
         setApps(a);
       } catch (e) {
         if (!alive) return;
-        setError(e instanceof ApiError ? e.message : 'Could not load admin data.');
+        setError(
+          e instanceof ApiError ? e.message : "Could not load admin data.",
+        );
       }
     })();
     return () => {
@@ -63,78 +79,116 @@ export default function AdminOverviewPage() {
   }, []);
 
   return (
-    <Container className="py-14">
-      <p className="text-xs uppercase tracking-[0.18em] text-[#3a342c]">
-        Admin
-      </p>
-      <h1 className="mt-2 font-serif text-5xl">Overview.</h1>
+    <div className="mx-auto max-w-[1200px] px-6 py-10 md:px-8">
+      <div className="mb-8">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7c766e]">
+          Admin
+        </p>
+        <h1
+          className="mt-2 text-[34px] tracking-tight text-[#1c1c17] md:text-[42px]"
+          style={{ fontFamily: "Literata, serif", fontWeight: 700 }}
+        >
+          Overview
+        </h1>
+      </div>
 
-      {error && (
-        <div className="mt-6">
+      {error ? (
+        <div className="mb-6">
           <Alert tone="error">{error}</Alert>
         </div>
-      )}
+      ) : null}
 
-      <section className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="Users" value={stats?.user_count ?? '—'} hint={`+${stats?.last_24h_users ?? 0} last 24h`} />
-        <StatTile label="Applications" value={stats?.application_count ?? '—'} hint={`+${stats?.last_24h_applications ?? 0} last 24h`} />
-        <StatTile label="Evaluations complete" value={stats?.evaluations_complete ?? '—'} />
-        <StatTile label="Evaluations failed" value={stats?.evaluations_failed ?? '—'} />
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <StatTile
+          label="Users"
+          value={stats?.user_count ?? "—"}
+          hint={`+${stats?.last_24h_users ?? 0} last 24h`}
+          icon="document"
+        />
+        <StatTile
+          label="Applications"
+          value={stats?.application_count ?? "—"}
+          hint={`+${stats?.last_24h_applications ?? 0} last 24h`}
+          icon="grid"
+        />
+        <StatTile
+          label="Evaluations complete"
+          value={stats?.evaluations_complete ?? "—"}
+          icon="shield_check"
+        />
+        <StatTile
+          label="Evaluations failed"
+          value={stats?.evaluations_failed ?? "—"}
+          icon="spark"
+        />
       </section>
 
-      {stats?.by_status && Object.keys(stats.by_status).length > 0 && (
+      {stats?.by_status && Object.keys(stats.by_status).length > 0 ? (
         <section className="mt-10">
-          <h2 className="font-serif text-2xl">Applications by status</h2>
-          <div className="mt-4 flex flex-wrap gap-3">
+          <h2
+            className="text-[20px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+          >
+            Applications by status
+          </h2>
+          <div className="mt-3 flex flex-wrap gap-2">
             {Object.entries(stats.by_status).map(([s, n]) => (
               <div
                 key={s}
-                className="flex items-center gap-3 rounded-full border border-[#1a1814]/10 bg-white/60 px-3 py-1.5"
+                className="flex items-center gap-2.5 rounded-full border border-[#cdc5bc] bg-white px-3 py-1.5"
               >
                 <StatusBadge status={s as ApplicationStatus} />
-                <span className="text-sm text-[#1a1814]">{n}</span>
+                <span className="text-[13px] font-semibold text-[#1c1c17]">
+                  {n}
+                </span>
               </div>
             ))}
           </div>
         </section>
-      )}
+      ) : null}
 
-      <section className="mt-12">
+      <section className="mt-10">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-2xl">Recent users</h2>
+          <h2
+            className="text-[20px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+          >
+            Recent users
+          </h2>
           <Link
             href="/dashboard/admin/users"
-            className="text-xs uppercase tracking-[0.15em] text-[#3a342c] hover:text-[#1a1814]"
+            className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4b463f] hover:text-[#1c1c17]"
           >
-            See all
+            See all →
           </Link>
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[#1a1814]/10 bg-white/40">
+        <div className="mt-3 overflow-hidden rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1]">
           {users === null ? (
-            <p className="p-6 text-sm text-[#3a342c]">Loading.</p>
+            <p className="p-6 text-[13px] text-[#7c766e]">Loading…</p>
           ) : users.length === 0 ? (
-            <p className="p-6 text-sm text-[#3a342c]">No users yet.</p>
+            <p className="p-6 text-[13px] text-[#7c766e]">No users yet.</p>
           ) : (
-            <ul className="divide-y divide-[#d9d5c8]">
+            <ul className="divide-y divide-[#cdc5bc]/40">
               {users.map((u) => (
                 <li
                   key={u.id}
-                  className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
+                  className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5"
                 >
                   <div className="min-w-0">
-                    <p className="truncate font-medium text-[#1a1814]">
+                    <p className="truncate text-[14px] font-semibold text-[#1c1c17]">
                       {u.email}
                     </p>
-                    <p className="truncate text-xs text-[#3a342c]/70">
-                      {u.full_name || 'No name'} · {u.application_count} application
-                      {u.application_count === 1 ? '' : 's'}
+                    <p className="truncate text-[11px] text-[#7c766e]">
+                      {u.full_name || "No name"} · {u.application_count}{" "}
+                      application
+                      {u.application_count === 1 ? "" : "s"}
                     </p>
                   </div>
-                  {u.is_superuser && (
-                    <span className="rounded-full bg-[#2b4f3a]/12 px-2.5 py-0.5 text-[10px] uppercase tracking-[0.15em] text-[#2b4f3a]">
+                  {u.is_superuser ? (
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-800">
                       Admin
                     </span>
-                  )}
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -142,44 +196,56 @@ export default function AdminOverviewPage() {
         </div>
       </section>
 
-      <section className="mt-12">
+      <section className="mt-10">
         <div className="flex items-baseline justify-between">
-          <h2 className="font-serif text-2xl">Recent applications</h2>
+          <h2
+            className="text-[20px] text-[#1c1c17]"
+            style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+          >
+            Recent applications
+          </h2>
           <Link
             href="/dashboard/admin/applications"
-            className="text-xs uppercase tracking-[0.15em] text-[#3a342c] hover:text-[#1a1814]"
+            className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#4b463f] hover:text-[#1c1c17]"
           >
-            See all
+            See all →
           </Link>
         </div>
-        <div className="mt-4 overflow-hidden rounded-2xl border border-[#1a1814]/10 bg-white/40">
+        <div className="mt-3 overflow-hidden rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1]">
           {apps === null ? (
-            <p className="p-6 text-sm text-[#3a342c]">Loading.</p>
+            <p className="p-6 text-[13px] text-[#7c766e]">Loading…</p>
           ) : apps.length === 0 ? (
-            <p className="p-6 text-sm text-[#3a342c]">No applications yet.</p>
+            <p className="p-6 text-[13px] text-[#7c766e]">
+              No applications yet.
+            </p>
           ) : (
-            <ul className="divide-y divide-[#d9d5c8]">
+            <ul className="divide-y divide-[#cdc5bc]/40">
               {apps.map((a) => (
                 <li key={a.id}>
                   <Link
                     href={`/dashboard/admin/applications/${a.id}`}
-                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 hover:bg-white/60"
+                    className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 transition-colors hover:bg-[#1c1c17]/[0.03]"
                   >
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-[#1a1814]">
+                      <p className="truncate text-[14px] font-semibold text-[#1c1c17]">
                         {a.job_title || a.job_url}
                       </p>
-                      <p className="truncate text-xs text-[#3a342c]/70">
+                      <p className="truncate text-[11px] text-[#7c766e]">
                         {a.user_email}
                       </p>
                     </div>
                     <div className="flex items-center gap-3">
-                      {a.competitiveness !== null && (
-                        <span className="font-serif text-lg text-[#1a1814]">
+                      {a.competitiveness !== null ? (
+                        <span
+                          className="text-[16px] font-bold text-[#1c1c17]"
+                          style={{ fontFamily: "Literata, serif" }}
+                        >
                           {a.competitiveness}
-                          <span className="text-xs text-[#3a342c]/60">/100</span>
+                          <span className="text-[10px] text-[#7c766e]">
+                            /100
+                          </span>
                         </span>
-                      )}
+                      ) : null}
                       <StatusBadge status={a.status} />
                     </div>
                   </Link>
@@ -189,6 +255,6 @@ export default function AdminOverviewPage() {
           )}
         </div>
       </section>
-    </Container>
+    </div>
   );
 }

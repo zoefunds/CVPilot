@@ -28,6 +28,7 @@ class JobPosting:
     final_url: str
     title: str
     text: str
+    html: str | None = None
 
 
 def _clean_html(html: str) -> tuple[str, str]:
@@ -84,4 +85,10 @@ def fetch_job_posting(url: str) -> JobPosting:
             code="job_url_empty",
         )
 
-    return JobPosting(url=url, final_url=str(r.url), title=title, text=text)
+    return JobPosting(
+        url=url,
+        final_url=str(r.url),
+        title=title,
+        text=text,
+        html=content.decode("utf-8", errors="ignore"),
+    )

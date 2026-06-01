@@ -66,6 +66,16 @@ class Settings(BaseSettings):
     log_level: str = Field(default="INFO", alias="LOG_LEVEL")
     log_json: bool = Field(default=True, alias="LOG_JSON")
 
+    # Email (Brevo transactional API)
+    brevo_api_key: str = Field(default="", alias="BREVO_API_KEY")
+    brevo_sender_email: str = Field(default="", alias="BREVO_SENDER_EMAIL")
+    brevo_sender_name: str = Field(default="CVPilot", alias="BREVO_SENDER_NAME")
+
+    # Password reset
+    password_reset_token_ttl_min: int = Field(
+        default=30, alias="PASSWORD_RESET_TOKEN_TTL_MIN"
+    )
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

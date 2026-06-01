@@ -81,9 +81,17 @@ export default function SignInPage() {
           </div>
 
           <div>
-            <label htmlFor="password" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#4b463f]">
-              Password
-            </label>
+            <div className="flex items-baseline justify-between">
+              <label htmlFor="password" className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#4b463f]">
+                Password
+              </label>
+              <Link
+                href="/forgot-password"
+                className="text-[12px] font-medium text-[#4b463f] underline underline-offset-4 hover:text-[#1c1c17]"
+              >
+                Forgot?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"

@@ -109,6 +109,18 @@ export const authApi = {
     });
   },
   me(): Promise<UserPublic> { return api<UserPublic>('/auth/me'); },
+  forgotPassword(email: string): Promise<{ detail: string }> {
+    return api<{ detail: string }>('/auth/forgot-password', {
+      method: 'POST', auth: false,
+      body: JSON.stringify({ email }),
+    });
+  },
+  resetPassword(token: string, password: string): Promise<{ detail: string }> {
+    return api<{ detail: string }>('/auth/reset-password', {
+      method: 'POST', auth: false,
+      body: JSON.stringify({ token, password }),
+    });
+  },
 };
 
 export const walletApi = {

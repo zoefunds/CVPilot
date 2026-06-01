@@ -1,13 +1,17 @@
 """
-Auth routes: register (now generates a wallet), login, refresh, me.
+Auth routes: register (now generates a wallet), login, refresh, me,
+forgot-password, reset-password.
 """
 
-from typing import Optional
+import hashlib
+import secrets
+from datetime import UTC, datetime, timedelta
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from backend.app.core.config import settings
 from backend.app.core.errors import UnauthorizedError, ValidationAppError
 from backend.app.core.logging import get_logger
 from backend.app.core.security import (
@@ -22,10 +26,22 @@ from backend.app.db.session import get_db
 from backend.app.dependencies.auth import get_current_user
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.models.audit_log import AuditLog
+from backend.app.models.password_reset_token import PasswordResetToken
 from backend.app.models.user import User
-from backend.app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenPair
+from backend.app.schemas.auth import (
+    ForgotPasswordRequest,
+    ForgotPasswordResponse,
+    LoginRequest,
+    RefreshRequest,
+    RegisterRequest,
+    ResetPasswordRequest,
+    ResetPasswordResponse,
+    TokenPair,
+)
 from backend.app.schemas.user import UserPublic
 from services.genlayer import generate_wallet
+from services.mailer import send_password_reset_email
+from services.mailer.brevo import MailerError, MailerNotConfiguredError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 log = get_logger("auth")
@@ -130,3 +146,138 @@ def refresh(
 @router.get("/me", response_model=UserPublic)
 def me(current_user: User = Depends(get_current_user)):
     return UserPublic.model_validate(current_user)
+
+
+def _hash_token(token: str) -> str:
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
+
+
+def _build_reset_url(token: str) -> str:
+    origin = settings.app_frontend_origin.rstrip("/")
+    return f"{origin}/reset-password?token={token}"
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordResponse)
+@limiter.limit("5/minute")
+def forgot_password(
+    request: Request,
+    body: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """Request a password reset email.
+
+    Always returns 200 with the same body to prevent account enumeration.
+    The actual email send is dispatched as a background task so timing
+    doesn't leak whether the address is registered.
+    """
+    email = body.email.lower()
+    user = db.scalar(select(User).where(User.email == email))
+
+    # Audit the attempt regardless of outcome.
+    _audit(
+        db,
+        user_id=user.id if user else None,
+        event="password_reset.requested",
+        request=request,
+        payload={"email": email, "user_found": user is not None},
+    )
+
+    if user is not None and user.is_active:
+        raw_token = secrets.token_urlsafe(48)
+        token_hash = _hash_token(raw_token)
+        ttl_min = settings.password_reset_token_ttl_min
+        expires_at = datetime.now(UTC) + timedelta(minutes=ttl_min)
+
+        db.add(
+            PasswordResetToken(
+                user_id=user.id,
+                token_hash=token_hash,
+                expires_at=expires_at,
+            )
+        )
+        db.commit()
+
+        reset_url = _build_reset_url(raw_token)
+        user_name = user.full_name
+        user_email = user.email
+
+        def _send() -> None:
+            try:
+                send_password_reset_email(
+                    to_email=user_email,
+                    to_name=user_name,
+                    reset_url=reset_url,
+                    ttl_min=ttl_min,
+                )
+            except MailerNotConfiguredError:
+                log.error("password_reset_mailer_not_configured", email=user_email)
+            except MailerError as exc:
+                log.error("password_reset_send_failed", email=user_email, error=str(exc))
+
+        background_tasks.add_task(_send)
+    else:
+        db.commit()
+
+    return ForgotPasswordResponse()
+
+
+@router.post("/reset-password", response_model=ResetPasswordResponse)
+@limiter.limit("10/minute")
+def reset_password(
+    request: Request,
+    body: ResetPasswordRequest,
+    db: Session = Depends(get_db),
+):
+    token_hash = _hash_token(body.token)
+    now = datetime.now(UTC)
+
+    record = db.scalar(
+        select(PasswordResetToken).where(PasswordResetToken.token_hash == token_hash)
+    )
+    if (
+        record is None
+        or record.used_at is not None
+        or record.expires_at <= now
+    ):
+        _audit(
+            db,
+            user_id=record.user_id if record else None,
+            event="password_reset.failed",
+            request=request,
+            payload={"reason": "invalid_or_expired"},
+        )
+        db.commit()
+        raise ValidationAppError(
+            "This reset link is invalid or has expired.",
+            code="invalid_reset_token",
+        )
+
+    user = db.get(User, record.user_id)
+    if user is None or not user.is_active:
+        _audit(
+            db,
+            user_id=record.user_id,
+            event="password_reset.failed",
+            request=request,
+            payload={"reason": "user_inactive_or_missing"},
+        )
+        db.commit()
+        raise ValidationAppError(
+            "This reset link is invalid or has expired.",
+            code="invalid_reset_token",
+        )
+
+    user.password_hash = hash_password(body.password)
+    record.used_at = now
+    # Invalidate any other outstanding tokens for this user.
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id,
+        PasswordResetToken.used_at.is_(None),
+        PasswordResetToken.id != record.id,
+    ).update({PasswordResetToken.used_at: now})
+
+    _audit(db, user_id=user.id, event="password_reset.completed", request=request)
+    db.commit()
+    log.info("password_reset_completed", user_id=str(user.id))
+    return ResetPasswordResponse()

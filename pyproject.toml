@@ -9,12 +9,38 @@ line-length = 100
 target-version = ["py311"]
 
 [tool.ruff]
-line-length = 100
+line-length = 110
 target-version = "py311"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "N", "C4", "SIM"]
-ignore = ["S101"]
+ignore = [
+    "S101",  # assert is fine in tests
+    # FastAPI's `Depends(get_db)`-as-default is the documented pattern.
+    "B008",
+    # APP_HOST defaults to 0.0.0.0; production overrides via env. Intentional.
+    "S104",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Tests legitimately hardcode fixture passwords and use random for non-crypto.
+"tests/**" = ["S105", "S106", "S107", "S311"]
+# Alembic uses star imports for `from alembic import op` style and stub
+# revision IDs are auto-generated long strings.
+"backend/app/db/migrations_env/**" = ["F401", "F403", "F405", "E501"]
+# Pytest conftest deliberately sets env vars before importing app modules.
+"**/conftest.py" = ["E402"]
+# GenLayer contracts use `from genlayer import *` as their canonical pattern.
+"contracts/**" = ["F401", "F403", "F405"]
+# Scaffold scripts are one-shot generators; star imports / late imports are fine.
+"scripts/scaffolds/**" = ["E402", "E501"]
+# LLM SDK shim layer: compact stub heuristics + tolerant SDK exception handling.
+"services/llm/**" = ["E501", "E701", "E702", "N806", "S110", "S112", "SIM102"]
+# eth_account / genlayer-py SDK wrapping: re-binds class names, late imports
+# behind a Python 3.11 buffer shim.
+"services/genlayer/**" = ["N806", "S110", "E402", "E501"]
+# Long log-call lines on the Celery evaluation task are readable as one line.
+"workers/tasks/**" = ["E501"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

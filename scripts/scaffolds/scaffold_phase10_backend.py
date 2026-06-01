@@ -3,6 +3,7 @@ Phase 10 backend: public verification endpoint.
 Reads an evaluation directly from the contract by content_hash. Unauthenticated.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

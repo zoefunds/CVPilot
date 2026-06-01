@@ -6,7 +6,6 @@ import hashlib
 import json
 import sys
 import time
-from typing import Any, Optional
 
 from backend.app.core.config import settings
 from backend.app.core.errors import AppError
@@ -138,7 +137,7 @@ def _extract_eval_json_from_receipt(receipt) -> str | None:
         seen.add(oid)
         if isinstance(obj, str):
             return _try_parse(obj)
-        if isinstance(obj, (bytes, bytearray)):
+        if isinstance(obj, bytes | bytearray):
             try:
                 return _try_parse(obj.decode("utf-8", errors="ignore"))
             except Exception:
@@ -149,7 +148,7 @@ def _extract_eval_json_from_receipt(receipt) -> str | None:
                 if r:
                     return r
             return None
-        if isinstance(obj, (list, tuple, set)):
+        if isinstance(obj, list | tuple | set):
             for v in obj:
                 r = _walk(v)
                 if r:
@@ -169,7 +168,7 @@ def _extract_eval_json_from_receipt(receipt) -> str | None:
 
 
 class GenLayerLLMClient(LLMClient):
-    def __init__(self, *, account_private_key: Optional[str] = None) -> None:
+    def __init__(self, *, account_private_key: str | None = None) -> None:
         if not settings.genlayer_contract_address:
             raise GenLayerClientError("GENLAYER_CONTRACT_ADDRESS is not configured.", code="genlayer_address_missing")
         create_account, create_client, studionet, TransactionStatus = _import_sdk()

@@ -3,6 +3,7 @@ Phase 11A frontend: WalletContext, top-bar WalletBalanceChip,
 session-expired toast on AuthContext, WalletCard reads shared state.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

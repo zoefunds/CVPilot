@@ -5,7 +5,7 @@ Admin routes. All gated by get_current_admin (is_superuser=true).
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import desc, func, select
@@ -56,7 +56,7 @@ def stats(db: Session = Depends(get_db)) -> AdminStats:
         or 0
     )
 
-    since = datetime.now(timezone.utc) - timedelta(hours=24)
+    since = datetime.now(UTC) - timedelta(hours=24)
     last_24h_users = (
         db.scalar(select(func.count(User.id)).where(User.created_at >= since)) or 0
     )

@@ -4,6 +4,7 @@ Settings page shows the wallet card with live balance + export, /dashboard/new
 catches 402 insufficient_balance and shows a top-up panel.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

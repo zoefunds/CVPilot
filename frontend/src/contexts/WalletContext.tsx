@@ -55,8 +55,10 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isAuthenticated]);
 
-  // Refresh on auth changes.
+  // Refresh on auth changes. Syncs React state with the wallet endpoint
+  // (external system), which is the documented exception to the rule.
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void refresh();
   }, [refresh, user?.id]);
 

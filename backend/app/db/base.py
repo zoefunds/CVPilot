@@ -10,7 +10,6 @@ from datetime import datetime
 from sqlalchemy import DateTime, MetaData, func
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
-
 # Naming convention so Alembic produces stable constraint names.
 NAMING_CONVENTION = {
     "ix": "ix_%(column_0_label)s",

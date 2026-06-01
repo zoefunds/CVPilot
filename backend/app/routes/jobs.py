@@ -4,7 +4,7 @@ POST /api/v1/jobs/ingest -> structured job fields.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, Request
@@ -57,7 +57,7 @@ def ingest_job(
     raw_html = getattr(posting, "html", None) or ""
     extracted = extract_job_fields(raw_html, url=url, fallback_title=posting.title)
 
-    now = datetime.now(timezone.utc).isoformat()
+    now = datetime.now(UTC).isoformat()
     result = {
         "url": posting.final_url or url,
         "title": extracted.title,

@@ -3,6 +3,7 @@ Phase 7A frontend: types, api client extension, RewritePanel, evaluation page wi
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

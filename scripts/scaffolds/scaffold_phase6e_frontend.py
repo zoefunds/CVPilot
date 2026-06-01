@@ -3,6 +3,7 @@ CVPilot Phase 6E frontend: admin guard, navigation, overview, users, application
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

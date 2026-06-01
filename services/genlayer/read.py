@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import json
 from functools import lru_cache
-from typing import Optional
 
 
 @lru_cache(maxsize=1)
@@ -17,7 +16,7 @@ def _client():
     return GenLayerLLMClient()  # ephemeral account; reads are unsigned
 
 
-def fetch_stored_evaluation(content_hash: str) -> Optional[dict]:
+def fetch_stored_evaluation(content_hash: str) -> dict | None:
     """Read get_evaluation(content_hash) from the contract. Returns parsed
     JSON dict or None if missing/empty/unreadable."""
     try:

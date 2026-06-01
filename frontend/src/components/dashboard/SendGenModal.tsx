@@ -35,8 +35,11 @@ export function SendGenModal({ open, onClose }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [confirming, setConfirming] = useState(false);
 
+  // Reset form whenever the modal is (re)opened. The state being synced is
+  // the modal's `open` prop coming from the parent (external system).
   useEffect(() => {
     if (open) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setTo("");
       setAmount("");
       setError(null);

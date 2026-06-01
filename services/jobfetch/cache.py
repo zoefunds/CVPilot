@@ -7,7 +7,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-from typing import Optional
 
 from backend.app.core.config import settings
 from backend.app.core.logging import get_logger
@@ -30,7 +29,7 @@ def _client():
         return None
 
 
-def get(url: str) -> Optional[dict]:
+def get(url: str) -> dict | None:
     client = _client()
     if client is None:
         return None

@@ -13,7 +13,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
 from backend.app.core.config import settings
-from backend.app.core.errors import NotFoundError, ValidationAppError
+from backend.app.core.errors import ValidationAppError
 from backend.app.core.logging import get_logger
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.schemas.public import PublicEvaluation

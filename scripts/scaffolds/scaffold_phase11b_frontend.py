@@ -3,6 +3,7 @@ Phase 11B frontend: SendGenModal, WalletActivity, integration in WalletCard
 and the Settings page.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

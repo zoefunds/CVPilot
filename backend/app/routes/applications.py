@@ -3,14 +3,12 @@ Applications API with balance-gated submission and submission metrics.
 """
 
 import uuid
-from typing import Optional
 
 from fastapi import APIRouter, Depends, File, Form, Request, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from backend.app.core.config import settings
-from backend.app.core.upload_validation import sniff as _sniff_upload, assert_total_size as _assert_total_upload_size
 from backend.app.core.errors import (
     AppError,
     ForbiddenError,
@@ -19,6 +17,8 @@ from backend.app.core.errors import (
 )
 from backend.app.core.logging import get_logger
 from backend.app.core.metrics import applications_submitted_total
+from backend.app.core.upload_validation import assert_total_size as _assert_total_upload_size
+from backend.app.core.upload_validation import sniff as _sniff_upload
 from backend.app.db.session import get_db
 from backend.app.dependencies.auth import get_current_user
 from backend.app.dependencies.rate_limit import limiter
@@ -105,8 +105,8 @@ def _check_balance_or_raise(user: User) -> None:
 def create_application(
     request: Request,
     job_url: str = Form(..., min_length=8, max_length=2048),
-    linkedin_url: Optional[str] = Form(default=None, max_length=2048),
-    portfolio_url: Optional[str] = Form(default=None, max_length=2048),
+    linkedin_url: str | None = Form(default=None, max_length=2048),
+    portfolio_url: str | None = Form(default=None, max_length=2048),
     cv: UploadFile = File(...),
     cover_letter: UploadFile = File(...),
     db: Session = Depends(get_db),

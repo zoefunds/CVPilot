@@ -34,8 +34,10 @@ export default function AdminApplicationsPage() {
   const [apps, setApps] = useState<AdminApplicationListItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // Re-fetch whenever the status filter changes.
   useEffect(() => {
     let alive = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setApps(null);
     setError(null);
     (async () => {

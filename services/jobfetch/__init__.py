@@ -1,1 +1,1 @@
-from services.jobfetch.fetcher import fetch_job_posting, JobPosting  # noqa: F401
+from services.jobfetch.fetcher import JobPosting, fetch_job_posting  # noqa: F401

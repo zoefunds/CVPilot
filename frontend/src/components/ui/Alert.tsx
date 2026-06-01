@@ -1,22 +1,29 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-type Tone = 'error' | 'success' | 'info';
+type Tone = "error" | "info" | "success" | "warning";
 
-const tones: Record<Tone, string> = {
-  error: 'border-[#9b2226]/30 bg-[#9b2226]/10 text-[#9b2226]',
-  success: 'border-[#2b4f3a]/30 bg-[#2b4f3a]/10 text-[#1f3a2a]',
-  info: 'border-[#1a1814]/15 bg-[#1a1814]/5 text-[#1a1814]',
+const toneStyles: Record<Tone, string> = {
+  error: "border-red-200 bg-red-50 text-red-800",
+  info: "border-[#cdc5bc] bg-[#f1eee6] text-[#1c1c17]",
+  success: "border-emerald-200 bg-emerald-50 text-emerald-800",
+  warning: "border-amber-200 bg-amber-50 text-amber-800",
 };
 
 export function Alert({
+  tone = "info",
   children,
-  tone = 'info',
 }: {
-  children: ReactNode;
   tone?: Tone;
+  children: ReactNode;
 }) {
   return (
-    <div className={`rounded-2xl border px-4 py-3 text-sm ${tones[tone]}`}>
+    <div
+      className={[
+        "rounded-xl border px-4 py-3 text-[13px] leading-relaxed",
+        toneStyles[tone],
+      ].join(" ")}
+      role={tone === "error" ? "alert" : undefined}
+    >
       {children}
     </div>
   );

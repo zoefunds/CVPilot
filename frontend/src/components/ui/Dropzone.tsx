@@ -1,6 +1,7 @@
-'use client';
+"use client";
 
-import { DragEvent, useId, useRef, useState } from 'react';
+import { DragEvent, useId, useRef, useState } from "react";
+import { Icon } from "@/components/icons/Icon";
 
 interface Props {
   label: string;
@@ -19,7 +20,7 @@ function formatBytes(n: number): string {
 
 export function Dropzone({
   label,
-  accept = '.pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain',
+  accept = ".pdf,.docx,.txt,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,text/plain",
   file,
   onFile,
   disabled,
@@ -39,6 +40,9 @@ export function Dropzone({
 
   return (
     <div>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#4b463f]">
+        {label}
+      </span>
       <label
         htmlFor={id}
         onDragOver={(e) => {
@@ -48,44 +52,53 @@ export function Dropzone({
         onDragLeave={() => setOver(false)}
         onDrop={handleDrop}
         className={[
-          'flex cursor-pointer flex-col items-start gap-2 rounded-2xl border border-dashed px-5 py-6 transition-colors',
+          "mt-2 flex cursor-pointer flex-col items-stretch rounded-xl border-2 border-dashed px-5 py-5 transition-all",
           over
-            ? 'border-[#2b4f3a] bg-[#2b4f3a]/5'
-            : 'border-[#1a1814]/25 bg-white/40 hover:bg-white/60',
-          disabled ? 'pointer-events-none opacity-60' : '',
-        ].join(' ')}
+            ? "border-[#1c1c17] bg-[#1c1c17]/5"
+            : "border-[#cdc5bc] bg-white hover:border-[#1c1c17]/40 hover:bg-[#fcf9f1]",
+          disabled ? "pointer-events-none opacity-60" : "",
+        ].join(" ")}
       >
-        <span className="text-xs uppercase tracking-[0.15em] text-[#3a342c]">
-          {label}
-        </span>
         {file ? (
-          <div className="flex w-full items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate font-medium text-[#1a1814]">{file.name}</p>
-              <p className="text-xs text-[#3a342c]/70">
-                {formatBytes(file.size)} · {file.type || 'unknown type'}
-              </p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#1c1c17] text-white">
+                <Icon name="document" size={18} />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-[14px] font-semibold text-[#1c1c17]">
+                  {file.name}
+                </p>
+                <p className="truncate text-[12px] text-[#7c766e]">
+                  {formatBytes(file.size)} · {file.type || "unknown"}
+                </p>
+              </div>
             </div>
             <button
               type="button"
               onClick={(e) => {
                 e.preventDefault();
                 onFile(null);
-                if (ref.current) ref.current.value = '';
+                if (ref.current) ref.current.value = "";
               }}
-              className="rounded-full border border-[#1a1814]/30 px-3 py-1 text-xs text-[#1a1814] hover:bg-[#1a1814]/5"
+              className="shrink-0 rounded-lg border border-[#cdc5bc] bg-white px-3 py-1.5 text-[12px] font-medium text-[#4b463f] hover:bg-[#f1eee6] hover:text-[#1c1c17]"
             >
               Replace
             </button>
           </div>
         ) : (
-          <div>
-            <p className="text-[#1a1814]">
-              Drop a file here, or click to choose.
-            </p>
-            <p className="mt-1 text-xs text-[#3a342c]/70">
-              {helperText || 'PDF, DOCX, or TXT. Up to 10 MB.'}
-            </p>
+          <div className="flex items-center gap-3">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-[#1c1c17]/8 text-[#1c1c17]">
+              <Icon name="plus" size={18} />
+            </span>
+            <div>
+              <p className="text-[14px] font-medium text-[#1c1c17]">
+                Drop a file here, or click to choose
+              </p>
+              <p className="mt-0.5 text-[12px] text-[#7c766e]">
+                {helperText || "PDF, DOCX, or TXT. Up to 4 MiB."}
+              </p>
+            </div>
           </div>
         )}
         <input

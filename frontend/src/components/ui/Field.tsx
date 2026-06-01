@@ -1,28 +1,21 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from "react";
 
-export function Field({
-  label,
-  hint,
-  error,
-  children,
-}: {
+interface FieldProps {
   label: string;
   hint?: string;
-  error?: string;
   children: ReactNode;
-}) {
+}
+
+export function Field({ label, hint, children }: FieldProps) {
   return (
-    <div>
-      <label className="mb-1.5 block text-xs uppercase tracking-[0.15em] text-[#3a342c]">
+    <label className="block">
+      <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#4b463f]">
         {label}
-      </label>
-      {children}
-      {hint && !error && (
-        <p className="mt-1.5 text-xs text-[#3a342c]/70">{hint}</p>
-      )}
-      {error && (
-        <p className="mt-1.5 text-xs text-[#9b2226]">{error}</p>
-      )}
-    </div>
+      </span>
+      <div className="mt-2">{children}</div>
+      {hint ? (
+        <p className="mt-1.5 text-[12px] text-[#7c766e]">{hint}</p>
+      ) : null}
+    </label>
   );
 }

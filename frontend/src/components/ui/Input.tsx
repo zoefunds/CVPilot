@@ -1,10 +1,22 @@
-import { forwardRef, InputHTMLAttributes } from 'react';
+import { forwardRef, type InputHTMLAttributes } from "react";
 
-export const Input = forwardRef<
-  HTMLInputElement,
-  InputHTMLAttributes<HTMLInputElement>
->(function Input({ className = '', ...rest }, ref) {
-  const base =
-    'w-full rounded-2xl border border-[#1a1814]/15 bg-white/60 px-4 py-3 text-[#1a1814] placeholder:text-[#3a342c]/50 outline-none transition-colors focus:border-[#2b4f3a] focus:bg-white disabled:opacity-60';
-  return <input ref={ref} className={`${base} ${className}`} {...rest} />;
+type InputProps = InputHTMLAttributes<HTMLInputElement>;
+
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { className = "", ...rest },
+  ref,
+) {
+  return (
+    <input
+      ref={ref}
+      {...rest}
+      className={[
+        "w-full rounded-xl border border-[#cdc5bc] bg-white px-4 py-3",
+        "text-[15px] text-[#1c1c17] placeholder:text-[#a8a298]",
+        "transition-all focus:border-[#1c1c17] focus:outline-none focus:ring-2 focus:ring-[#1c1c17]/10",
+        "disabled:cursor-not-allowed disabled:opacity-60",
+        className,
+      ].join(" ")}
+    />
+  );
 });

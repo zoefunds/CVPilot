@@ -9,7 +9,6 @@ its client surface has been unstable across versions.
 from __future__ import annotations
 
 import sys
-from typing import Optional, Tuple
 
 import httpx
 
@@ -47,7 +46,7 @@ def _eth_account():
     return Account
 
 
-def generate_wallet() -> Tuple[str, str]:
+def generate_wallet() -> tuple[str, str]:
     Account = _eth_account()
     acct = Account.create()
     address = acct.address
@@ -83,9 +82,9 @@ def _rpc_url() -> str:
                 default = v.get("default")
                 if isinstance(default, dict):
                     http_list = default.get("http") or default.get("https")
-                    if isinstance(http_list, (list, tuple)) and http_list:
+                    if isinstance(http_list, list | tuple) and http_list:
                         candidates.append(str(http_list[0]))
-                elif isinstance(default, (list, tuple)) and default:
+                elif isinstance(default, list | tuple) and default:
                     candidates.append(str(default[0]))
                 elif isinstance(default, str):
                     candidates.append(default)
@@ -94,7 +93,7 @@ def _rpc_url() -> str:
                         if isinstance(inner, str):
                             candidates.append(inner)
                             break
-            elif isinstance(v, (list, tuple)) and v:
+            elif isinstance(v, list | tuple) and v:
                 candidates.append(str(v[0]))
     except Exception as exc:
         log.warning("rpc_url_sdk_introspect_failed", error=str(exc))
@@ -227,7 +226,7 @@ def send_gen(*, private_key: str, to_address: str, amount_wei: int) -> dict:
     raw = getattr(signed, "raw_transaction", None) or getattr(signed, "rawTransaction", None)
     if raw is None:
         raise WalletError("Could not obtain raw signed transaction.", code="wallet_send_no_raw")
-    raw_hex = raw.hex() if isinstance(raw, (bytes, bytearray)) else str(raw)
+    raw_hex = raw.hex() if isinstance(raw, bytes | bytearray) else str(raw)
     if not raw_hex.startswith("0x"):
         raw_hex = "0x" + raw_hex
 

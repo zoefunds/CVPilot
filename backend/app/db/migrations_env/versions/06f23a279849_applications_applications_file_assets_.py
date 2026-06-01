@@ -5,17 +5,18 @@ Revises: 65a0f6a6a7cf
 Create Date: 2026-05-25 01:48:22.183102
 
 """
-from typing import Sequence, Union
+from collections.abc import Sequence
+from typing import Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision: str = '06f23a279849'
-down_revision: Union[str, None] = '65a0f6a6a7cf'
-branch_labels: Union[str, Sequence[str], None] = None
-depends_on: Union[str, Sequence[str], None] = None
+down_revision: str | None = '65a0f6a6a7cf'
+branch_labels: str | Sequence[str] | None = None
+depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:

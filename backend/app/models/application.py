@@ -53,7 +53,7 @@ class Application(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(application_status_enum, default="pending", nullable=False)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    files: Mapped[list["FileAsset"]] = relationship(
+    files: Mapped[list[FileAsset]] = relationship(
         "FileAsset",
         back_populates="application",
         cascade="all, delete-orphan",
@@ -81,4 +81,4 @@ class FileAsset(Base, TimestampMixin):
     detected_kind: Mapped[str | None] = mapped_column(String(16), nullable=True)
     extracted_text: Mapped[str | None] = mapped_column(Text, nullable=True)
 
-    application: Mapped["Application"] = relationship("Application", back_populates="files")
+    application: Mapped[Application] = relationship("Application", back_populates="files")

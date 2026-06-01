@@ -4,6 +4,7 @@ Uses /signin and /signup routes (no dashes).
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

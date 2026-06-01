@@ -49,7 +49,9 @@ class Settings(BaseSettings):
     rate_limit_per_minute: int = Field(default=60, alias="RATE_LIMIT_PER_MINUTE")
     rate_limit_burst: int = Field(default=20, alias="RATE_LIMIT_BURST")
 
-    genlayer_studionet_rpc: str = Field(default="https://studio.genlayer.com/api", alias="GENLAYER_STUDIONET_RPC")
+    genlayer_studionet_rpc: str = Field(
+        default="https://studio.genlayer.com/api", alias="GENLAYER_STUDIONET_RPC"
+    )
     genlayer_account_private_key: str = Field(default="", alias="GENLAYER_ACCOUNT_PRIVATE_KEY")
     genlayer_contract_address: str = Field(default="", alias="GENLAYER_CONTRACT_ADDRESS")
     genlayer_llm_model: str = Field(default="default", alias="GENLAYER_LLM_MODEL")

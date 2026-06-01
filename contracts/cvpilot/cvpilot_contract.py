@@ -13,9 +13,9 @@
 #     Bare gl.nondet.exec_prompt inside a write method is rejected with
 #     SystemError: 6: forbidden.
 
-from genlayer import *
 import json
 
+from genlayer import *
 
 _CONTRACT_VERSION = "0.3.3"
 
@@ -137,7 +137,7 @@ COVER LETTER:
             cleaned = cleaned.strip()
             try:
                 parsed = json.loads(cleaned)
-            except:
+            except Exception:
                 parsed = {
                     "cv_score": 0,
                     "cover_letter_score": 0,
@@ -178,7 +178,8 @@ Two CVPilot evaluations are equivalent if:
    - strong if overall_score is 75 or above
    - mixed if overall_score is between 50 and 74
    - weak if overall_score is below 50
-6. Recommendations, risks, strengths, and missing skills do not need exact wording, but must express substantially similar career advice.
+6. Recommendations, risks, strengths, and missing skills do not need exact wording,
+   but must express substantially similar career advice.
 7. The evaluation must be based on the provided CV, cover letter, job description, job title, and URLs.
 """
         )

@@ -3,6 +3,7 @@ CVPilot Phase 6E backend: admin routes, schemas, guard, tests.
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

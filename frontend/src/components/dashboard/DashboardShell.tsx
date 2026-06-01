@@ -87,11 +87,13 @@ export function DashboardShell({ children }: { children: React.ReactNode }) {
     const prevOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
 
+    // Capture the ref's current value now; by cleanup time it may have changed.
+    const triggerEl = menuButtonRef.current;
     return () => {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
       // Restore focus to the trigger button, or whatever had focus before.
-      (menuButtonRef.current || previouslyFocused)?.focus();
+      (triggerEl || previouslyFocused)?.focus();
     };
   }, [mobileOpen]);
 

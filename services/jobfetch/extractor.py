@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from bs4 import BeautifulSoup
 
@@ -17,21 +17,21 @@ _MAX_DESC = 4000
 @dataclass(frozen=True)
 class ExtractedJob:
     url: str
-    title: Optional[str]
-    company: Optional[str]
-    location: Optional[str]
-    employment_type: Optional[str]
-    description: Optional[str]
+    title: str | None
+    company: str | None
+    location: str | None
+    employment_type: str | None
+    description: str | None
 
 
-def _txt(s: Optional[str]) -> Optional[str]:
+def _txt(s: str | None) -> str | None:
     if not isinstance(s, str):
         return None
     s = s.strip()
     return s or None
 
 
-def _flatten_str(value: Any) -> Optional[str]:
+def _flatten_str(value: Any) -> str | None:
     if isinstance(value, str):
         return _txt(value)
     if isinstance(value, dict):
@@ -44,7 +44,7 @@ def _flatten_str(value: Any) -> Optional[str]:
     return None
 
 
-def _extract_jsonld(soup: BeautifulSoup) -> Optional[dict]:
+def _extract_jsonld(soup: BeautifulSoup) -> dict | None:
     for tag in soup.find_all("script", type="application/ld+json"):
         try:
             data = json.loads(tag.string or "{}")
@@ -60,7 +60,7 @@ def _extract_jsonld(soup: BeautifulSoup) -> Optional[dict]:
     return None
 
 
-def _location_from_jsonld(jl: Any) -> Optional[str]:
+def _location_from_jsonld(jl: Any) -> str | None:
     if isinstance(jl, list) and jl:
         jl = jl[0]
     if not isinstance(jl, dict):
@@ -73,7 +73,7 @@ def _location_from_jsonld(jl: Any) -> Optional[str]:
     return ", ".join(cleaned) if cleaned else None
 
 
-def _strip_inline_html(s: Optional[str]) -> Optional[str]:
+def _strip_inline_html(s: str | None) -> str | None:
     if not s:
         return None
     if "<" not in s or ">" not in s:
@@ -90,7 +90,7 @@ def _from_meta(soup: BeautifulSoup) -> dict:
     return out
 
 
-def _heuristic_description(soup: BeautifulSoup) -> Optional[str]:
+def _heuristic_description(soup: BeautifulSoup) -> str | None:
     for tag in soup(["script", "style", "noscript", "header", "footer", "nav", "form"]):
         tag.decompose()
     text = soup.get_text(separator="\n", strip=True)
@@ -99,7 +99,7 @@ def _heuristic_description(soup: BeautifulSoup) -> Optional[str]:
     return text[:_MAX_DESC].strip() or None
 
 
-def extract_job_fields(html: str, url: str, fallback_title: Optional[str] = None) -> ExtractedJob:
+def extract_job_fields(html: str, url: str, fallback_title: str | None = None) -> ExtractedJob:
     soup = BeautifulSoup(html or "", "lxml")
     ld = _extract_jsonld(soup)
     if ld:

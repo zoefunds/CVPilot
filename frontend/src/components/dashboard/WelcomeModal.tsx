@@ -29,9 +29,11 @@ export function WelcomeModal() {
   const [open, setOpen] = useState(false);
 
   // Only run on the client. Show only if the user has not dismissed before.
+  // Syncs React state with localStorage (external system).
   useEffect(() => {
     try {
       const dismissed = localStorage.getItem(STORAGE_KEY) === "1";
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (!dismissed) setOpen(true);
     } catch {
       // localStorage unavailable: never auto-show.
@@ -54,7 +56,6 @@ export function WelcomeModal() {
       document.removeEventListener("keydown", onKey);
       document.body.style.overflow = prevOverflow;
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   function dismiss() {

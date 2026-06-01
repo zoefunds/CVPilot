@@ -3,6 +3,7 @@ Phase 5B Part 2: real GenLayer LLM client + persistence of contract_tx_hash.
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

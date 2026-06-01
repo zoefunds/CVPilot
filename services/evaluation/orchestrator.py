@@ -6,7 +6,6 @@ client signs transactions from that user's address.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
 
 from services.llm import LLMEvaluation
 from services.llm.factory import get_llm_client
@@ -27,7 +26,7 @@ def run_evaluation(
     job_url: str,
     linkedin_url: str | None,
     portfolio_url: str | None,
-    account_private_key: Optional[str] = None,
+    account_private_key: str | None = None,
 ) -> EvaluationOutcome:
     client = get_llm_client(account_private_key=account_private_key)
     report = client.evaluate(

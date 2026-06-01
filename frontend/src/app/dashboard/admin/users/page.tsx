@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { Alert } from "@/components/ui/Alert";
-import { Icon } from "@/components/icons/Icon";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiError, adminApi } from "@/lib/api";
 import type { AdminUserListItem } from "@/lib/types";

@@ -18,8 +18,10 @@ export default function VerifyDetailPage() {
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Re-fetch whenever the content hash in the URL changes.
   useEffect(() => {
     let alive = true;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setData(null);
     setNotFound(false);
     setError(null);

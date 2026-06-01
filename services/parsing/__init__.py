@@ -1,1 +1,1 @@
-from services.parsing.extractor import extract_text, FileKind  # noqa: F401
+from services.parsing.extractor import FileKind, extract_text  # noqa: F401

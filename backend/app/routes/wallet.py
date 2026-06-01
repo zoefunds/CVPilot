@@ -4,7 +4,6 @@ Wallet routes.
 
 import re
 from decimal import Decimal, InvalidOperation
-from typing import List
 
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy import select
@@ -29,7 +28,7 @@ from backend.app.schemas.wallet import (
     WalletSendResponse,
 )
 from services.genlayer import get_balance_wei
-from services.genlayer.wallet import send_gen, WalletError
+from services.genlayer.wallet import WalletError, send_gen
 
 router = APIRouter(prefix="/auth/wallet", tags=["wallet"])
 log = get_logger("wallet")
@@ -47,8 +46,8 @@ def _wei_to_gen_str(wei: int) -> str:
 def _gen_to_wei(amount_gen: str) -> int:
     try:
         d = Decimal(amount_gen.strip())
-    except (InvalidOperation, AttributeError):
-        raise ValidationAppError("Amount is not a valid number.", code="amount_invalid")
+    except (InvalidOperation, AttributeError) as exc:
+        raise ValidationAppError("Amount is not a valid number.", code="amount_invalid") from exc
     if d <= 0:
         raise ValidationAppError("Amount must be greater than zero.", code="amount_not_positive")
     if d > Decimal("1000000000"):
@@ -189,7 +188,7 @@ def send(
     )
 
 
-@router.get("/activity", response_model=List[WalletActivityItem])
+@router.get("/activity", response_model=list[WalletActivityItem])
 def activity(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),

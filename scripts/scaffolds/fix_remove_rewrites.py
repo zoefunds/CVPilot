@@ -632,6 +632,7 @@ GENLAYER = ROOT / "services/llm/genlayer.py"
 genlayer_src = GENLAYER.read_text(encoding="utf-8")
 # Remove the rewrite_cv method block
 import re as _re
+
 genlayer_src = _re.sub(
     r"    def rewrite_cv\(.*?return StubLLMClient\(\)\.rewrite_cv\([^)]*\)\n",
     "",

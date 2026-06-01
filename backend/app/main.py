@@ -13,9 +13,9 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from api.v1.router import api_router
 from backend.app.core.config import settings
-from backend.app.core.startup_guard import assert_safe_startup
 from backend.app.core.errors import register_exception_handlers
 from backend.app.core.logging import configure_logging, get_logger
+from backend.app.core.startup_guard import assert_safe_startup
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.middleware.request_id import RequestIDMiddleware
 from backend.app.middleware.request_log import RequestLogMiddleware

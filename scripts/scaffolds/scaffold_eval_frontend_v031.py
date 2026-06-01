@@ -4,6 +4,7 @@ detail page to render overall, strengths, risks, improved positioning,
 content hash, and contract address.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

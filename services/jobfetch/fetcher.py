@@ -40,7 +40,7 @@ def _clean_html(html: str) -> tuple[str, str]:
 
     text = soup.get_text(separator="\n", strip=True)
     # Collapse blank-line runs
-    lines = [ln for ln in (l.strip() for l in text.splitlines()) if ln]
+    lines = [stripped for stripped in (raw.strip() for raw in text.splitlines()) if stripped]
     return title, "\n".join(lines)
 
 

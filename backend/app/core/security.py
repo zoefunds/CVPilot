@@ -4,7 +4,7 @@ Password hashing (bcrypt, called directly) + JWT issuance/verification.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any, Literal
 
 import bcrypt
@@ -43,7 +43,7 @@ def _create_token(
     token_type: TokenType,
     extra: dict[str, Any] | None = None,
 ) -> str:
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     payload: dict[str, Any] = {
         "sub": subject,
         "iat": int(now.timestamp()),

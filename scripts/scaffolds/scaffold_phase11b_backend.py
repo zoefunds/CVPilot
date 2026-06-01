@@ -2,6 +2,7 @@
 Phase 11B backend: Send GEN + Activity history.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

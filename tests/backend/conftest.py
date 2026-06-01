@@ -27,7 +27,6 @@ from backend.app.db.session import engine  # noqa: E402
 from backend.app.dependencies.rate_limit import limiter  # noqa: E402
 from backend.app.main import app  # noqa: E402
 
-
 # Disable the slowapi limiter for the entire test session.
 limiter.enabled = False
 

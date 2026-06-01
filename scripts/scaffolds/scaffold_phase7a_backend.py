@@ -3,6 +3,7 @@ Phase 7A backend: Rewrite ORM, LLM rewrite_cv, route, Celery task, tests.
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

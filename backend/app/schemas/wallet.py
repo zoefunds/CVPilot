@@ -29,7 +29,10 @@ class WalletExport(BaseModel):
 
 class WalletSendRequest(BaseModel):
     to_address: str = Field(..., min_length=42, max_length=42)
-    amount_gen: str = Field(..., min_length=1, max_length=64, description="Amount in GEN, decimal string. e.g. '0.5'")
+    amount_gen: str = Field(
+        ..., min_length=1, max_length=64,
+        description="Amount in GEN, decimal string. e.g. '0.5'",
+    )
 
 
 class WalletSendResponse(BaseModel):

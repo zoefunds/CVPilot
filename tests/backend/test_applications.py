@@ -13,7 +13,9 @@ from reportlab.lib.pagesizes import LETTER
 from reportlab.pdfgen import canvas
 
 
-def _pdf_bytes(body: str = "Senior Python Engineer with 8 years experience in FastAPI, Postgres, and Kubernetes.") -> bytes:
+def _pdf_bytes(
+    body: str = "Senior Python Engineer with 8 years experience in FastAPI, Postgres, and Kubernetes.",
+) -> bytes:
     buf = io.BytesIO()
     c = canvas.Canvas(buf, pagesize=LETTER)
     c.setFont("Helvetica", 12)

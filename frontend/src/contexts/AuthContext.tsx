@@ -74,6 +74,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [push]);
 
   useEffect(() => {
+    // Bootstrap the current user on mount / token change. loadMe synchronizes
+    // React state with an external system (the stored token + /me endpoint),
+    // which is the documented exception to react-hooks/set-state-in-effect.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadMe();
   }, [loadMe]);
 

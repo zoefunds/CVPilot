@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter, Instrument_Serif } from 'next/font/google';
 import { Providers } from '@/components/providers/Providers';
 import { appName } from '@/lib/brand';
@@ -22,7 +22,6 @@ export const metadata: Metadata = {
   description:
     'CVPilot evaluates your CV, cover letter, and job match with verifiable AI scoring on GenLayer StudioNet. Get the truth before you apply.',
   applicationName: appName,
-  themeColor: '#efece4',
   openGraph: {
     title: `${appName}. AI Job Application Intelligence.`,
     description:
@@ -30,6 +29,10 @@ export const metadata: Metadata = {
     type: 'website',
   },
   icons: { icon: '/favicon.ico' },
+};
+
+export const viewport: Viewport = {
+  themeColor: '#efece4',
 };
 
 export default function RootLayout({

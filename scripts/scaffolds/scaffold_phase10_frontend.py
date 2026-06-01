@@ -2,6 +2,7 @@
 Phase 10 frontend: /verify landing + /verify/[content_hash] page + Share button.
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")
@@ -729,7 +730,6 @@ for rel, content in FILES.items():
     write(rel, content)
 
 # Add a "Share verification link" button to the dashboard detail page
-import re
 DETAIL = ROOT / "frontend/src/app/dashboard/applications/[id]/page.tsx"
 text = DETAIL.read_text(encoding="utf-8")
 

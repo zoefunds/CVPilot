@@ -25,8 +25,10 @@ def _pdf_bytes() -> bytes:
     ]
     y = 720
     for ln in lines:
-        c.drawString(72, y, ln); y -= 18
-    c.showPage(); c.save()
+        c.drawString(72, y, ln)
+        y -= 18
+    c.showPage()
+    c.save()
     return buf.getvalue()
 
 

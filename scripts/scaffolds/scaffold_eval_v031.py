@@ -10,6 +10,7 @@ client + worker to handle the v0.3.1 contract response shape:
   + contract_address  (so each row points to its on-chain origin)
 """
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

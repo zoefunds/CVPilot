@@ -7,6 +7,7 @@ Phase 5B Part 2 fix-up:
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

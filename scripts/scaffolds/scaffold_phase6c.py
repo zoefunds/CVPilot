@@ -3,6 +3,7 @@ CVPilot Phase 6C: upload flow, applications list, status polling, evaluation dis
 """
 
 from __future__ import annotations
+
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")

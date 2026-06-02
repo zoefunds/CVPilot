@@ -78,6 +78,11 @@ class Settings(BaseSettings):
         default=30, alias="PASSWORD_RESET_TOKEN_TTL_MIN"
     )
 
+    # Email verification (24h default)
+    email_verification_token_ttl_min: int = Field(
+        default=1440, alias="EMAIL_VERIFICATION_TOKEN_TTL_MIN"
+    )
+
     @property
     def is_production(self) -> bool:
         return self.app_env == "production"

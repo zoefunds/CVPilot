@@ -157,3 +157,66 @@ def send_password_reset_email(
         html=_reset_email_html(to_name, reset_url, ttl_min),
         text=_reset_email_text(to_name, reset_url, ttl_min),
     )
+
+
+def _verify_email_html(name: str | None, verify_url: str, ttl_hours: int) -> str:
+    greeting = f"Hi {name}," if name else "Hi,"
+    return f"""\
+<!doctype html>
+<html>
+  <body style="font-family:Inter,Arial,sans-serif;background:#efece4;padding:32px;color:#1c1c17;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;margin:0 auto;background:#fcf9f1;border-radius:16px;border:1px solid #cdc5bc;">
+      <tr><td style="padding:32px;">
+        <h1 style="font-family:'Literata',Georgia,serif;font-weight:700;font-size:24px;margin:0 0 12px;">Confirm your email</h1>
+        <p style="font-size:15px;line-height:1.55;margin:0 0 20px;">{greeting}</p>
+        <p style="font-size:15px;line-height:1.55;margin:0 0 24px;">
+          Welcome to CVPilot. Click the button below to verify your email address and unlock your dashboard.
+          This link expires in {ttl_hours} hours.
+        </p>
+        <p style="margin:0 0 28px;">
+          <a href="{verify_url}" style="display:inline-block;background:#1c1c17;color:#fff;text-decoration:none;font-weight:600;padding:12px 22px;border-radius:10px;font-size:15px;">Verify email</a>
+        </p>
+        <p style="font-size:13px;color:#4b463f;line-height:1.55;margin:0 0 8px;">
+          If the button doesn't work, paste this URL into your browser:
+        </p>
+        <p style="font-size:12px;word-break:break-all;color:#4b463f;margin:0 0 24px;">{verify_url}</p>
+        <hr style="border:none;border-top:1px solid #cdc5bc;margin:24px 0;">
+        <p style="font-size:12px;color:#7c766e;line-height:1.55;margin:0;">
+          If you didn't create a CVPilot account, you can safely ignore this email.
+        </p>
+      </td></tr>
+    </table>
+  </body>
+</html>
+"""
+
+
+def _verify_email_text(name: str | None, verify_url: str, ttl_hours: int) -> str:
+    greeting = f"Hi {name}," if name else "Hi,"
+    return (
+        f"{greeting}\n\n"
+        "Welcome to CVPilot. Open this link to verify your email address "
+        f"and unlock your dashboard (expires in {ttl_hours} hours):\n\n"
+        f"{verify_url}\n\n"
+        "If you didn't create a CVPilot account, you can safely ignore this email.\n"
+    )
+
+
+def send_email_verification_email(
+    *,
+    to_email: str,
+    to_name: str | None,
+    verify_url: str,
+    ttl_min: int,
+    mailer: BrevoMailer | None = None,
+) -> str:
+    """Send the email-verification email. Returns the Brevo messageId."""
+    ttl_hours = max(1, ttl_min // 60)
+    m = mailer or BrevoMailer.from_settings()
+    return m.send(
+        to_email=to_email,
+        to_name=to_name,
+        subject="Confirm your CVPilot email",
+        html=_verify_email_html(to_name, verify_url, ttl_hours),
+        text=_verify_email_text(to_name, verify_url, ttl_hours),
+    )

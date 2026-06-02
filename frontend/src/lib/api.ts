@@ -121,6 +121,15 @@ export const authApi = {
       body: JSON.stringify({ token, password }),
     });
   },
+  sendVerification(): Promise<{ detail: string }> {
+    return api<{ detail: string }>('/auth/send-verification', { method: 'POST' });
+  },
+  verifyEmail(token: string): Promise<{ detail: string }> {
+    return api<{ detail: string }>('/auth/verify-email', {
+      method: 'POST', auth: false,
+      body: JSON.stringify({ token }),
+    });
+  },
 };
 
 export const walletApi = {

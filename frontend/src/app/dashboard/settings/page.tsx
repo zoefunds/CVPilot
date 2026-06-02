@@ -7,6 +7,7 @@ import { WalletActivity } from "@/components/dashboard/WalletActivity";
 import { Icon } from "@/components/icons/Icon";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/contexts/ToastContext";
+import { ApiError, authApi } from "@/lib/api";
 
 function fmtDate(s: string | undefined): string {
   if (!s) return "—";
@@ -22,6 +23,24 @@ export default function SettingsPage() {
   const { push } = useToast();
   const [confirming, setConfirming] = useState(false);
   const [activityKey, setActivityKey] = useState(0);
+  const [resending, setResending] = useState(false);
+
+  async function resendVerification() {
+    setResending(true);
+    try {
+      await authApi.sendVerification();
+      push({
+        tone: "success",
+        title: "Verification email sent.",
+        message: "Check your inbox (and spam folder).",
+      });
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.message : "Could not send the email.";
+      push({ tone: "error", title: "Send failed", message: msg });
+    } finally {
+      setResending(false);
+    }
+  }
 
   async function copy(text: string, label: string) {
     try {
@@ -53,6 +72,29 @@ export default function SettingsPage() {
           Your account
         </h1>
       </div>
+
+      {user && !user.email_verified ? (
+        <section className="mb-8">
+          <Alert tone="warning">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <p className="font-semibold">Your email isn&apos;t verified yet.</p>
+                <p className="mt-1 text-[12px] text-amber-900/85">
+                  Confirm <span className="font-medium">{user.email}</span> to unlock the dashboard.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={resendVerification}
+                disabled={resending}
+                className="rounded-lg bg-[#1c1c17] px-3 py-1.5 text-[12px] font-semibold text-white hover:bg-[#332f28] disabled:opacity-60"
+              >
+                {resending ? "Sending…" : "Send verification email"}
+              </button>
+            </div>
+          </Alert>
+        </section>
+      ) : null}
 
       <section className="mb-10">
         <WalletCard onActivityChanged={() => setActivityKey((k) => k + 1)} />

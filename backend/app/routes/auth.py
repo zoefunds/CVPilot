@@ -26,6 +26,7 @@ from backend.app.db.session import get_db
 from backend.app.dependencies.auth import get_current_user
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.models.audit_log import AuditLog
+from backend.app.models.email_verification_token import EmailVerificationToken
 from backend.app.models.password_reset_token import PasswordResetToken
 from backend.app.models.user import User
 from backend.app.schemas.auth import (
@@ -36,11 +37,14 @@ from backend.app.schemas.auth import (
     RegisterRequest,
     ResetPasswordRequest,
     ResetPasswordResponse,
+    SendVerificationResponse,
     TokenPair,
+    VerifyEmailRequest,
+    VerifyEmailResponse,
 )
 from backend.app.schemas.user import UserPublic
 from services.genlayer import generate_wallet
-from services.mailer import send_password_reset_email
+from services.mailer import send_email_verification_email, send_password_reset_email
 from services.mailer.brevo import MailerError, MailerNotConfiguredError
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -64,6 +68,7 @@ def _audit(db: Session, *, user_id, event: str, request: Request, payload=None) 
 def register(
     request: Request,
     body: RegisterRequest,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
 ):
     existing = db.scalar(select(User).where(User.email == body.email.lower()))
@@ -89,6 +94,9 @@ def register(
         request=request,
         payload={"wallet_address": address},
     )
+    # Issue a verification token + dispatch the email as a background task so
+    # the registration response isn't blocked by Brevo latency.
+    _issue_verification_token(db, user, request, background_tasks)
     db.commit()
     db.refresh(user)
     log.info("user_registered", user_id=str(user.id), wallet_address=address)
@@ -155,6 +163,61 @@ def _hash_token(token: str) -> str:
 def _build_reset_url(token: str) -> str:
     origin = settings.app_frontend_origin.rstrip("/")
     return f"{origin}/reset-password?token={token}"
+
+
+def _build_verify_url(token: str) -> str:
+    origin = settings.app_frontend_origin.rstrip("/")
+    return f"{origin}/verify-email?token={token}"
+
+
+def _issue_verification_token(
+    db: Session,
+    user: User,
+    request: Request,
+    background_tasks: BackgroundTasks,
+) -> None:
+    """Create a one-time verification token + dispatch the email.
+
+    Caller owns the surrounding db.commit(). The send is dispatched as a
+    background task so request latency isn't tied to Brevo.
+    """
+    raw_token = secrets.token_urlsafe(48)
+    token_hash = _hash_token(raw_token)
+    ttl_min = settings.email_verification_token_ttl_min
+    expires_at = datetime.now(UTC) + timedelta(minutes=ttl_min)
+
+    db.add(
+        EmailVerificationToken(
+            user_id=user.id,
+            token_hash=token_hash,
+            expires_at=expires_at,
+        )
+    )
+    _audit(
+        db,
+        user_id=user.id,
+        event="email_verification.requested",
+        request=request,
+    )
+
+    verify_url = _build_verify_url(raw_token)
+    user_name = user.full_name
+    user_email = user.email
+
+    def _send() -> None:
+        try:
+            send_email_verification_email(
+                to_email=user_email,
+                to_name=user_name,
+                verify_url=verify_url,
+                ttl_min=ttl_min,
+            )
+        except MailerNotConfiguredError:
+            log.error("verification_mailer_not_configured", email=user_email)
+        except MailerError as exc:
+            log.error("verification_send_failed", email=user_email, error=str(exc))
+
+    background_tasks.add_task(_send)
 
 
 @router.post("/forgot-password", response_model=ForgotPasswordResponse)
@@ -281,3 +344,93 @@ def reset_password(
     db.commit()
     log.info("password_reset_completed", user_id=str(user.id))
     return ResetPasswordResponse()
+
+
+@router.post("/send-verification", response_model=SendVerificationResponse)
+@limiter.limit("3/minute")
+def send_verification(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Resend the email verification link.
+
+    Always returns 200 with the same body, regardless of whether the user is
+    already verified. Idempotent for repeated taps.
+    """
+    if current_user.email_verified_at is not None:
+        # Already verified; no-op (and no email).
+        return SendVerificationResponse()
+
+    # Invalidate any outstanding tokens for this user before issuing a new one.
+    db.query(EmailVerificationToken).filter(
+        EmailVerificationToken.user_id == current_user.id,
+        EmailVerificationToken.used_at.is_(None),
+    ).update({EmailVerificationToken.used_at: datetime.now(UTC)})
+
+    _issue_verification_token(db, current_user, request, background_tasks)
+    db.commit()
+    return SendVerificationResponse()
+
+
+@router.post("/verify-email", response_model=VerifyEmailResponse)
+@limiter.limit("10/minute")
+def verify_email(
+    request: Request,
+    body: VerifyEmailRequest,
+    db: Session = Depends(get_db),
+):
+    token_hash = _hash_token(body.token)
+    now = datetime.now(UTC)
+
+    record = db.scalar(
+        select(EmailVerificationToken).where(EmailVerificationToken.token_hash == token_hash)
+    )
+    if (
+        record is None
+        or record.used_at is not None
+        or record.expires_at <= now
+    ):
+        _audit(
+            db,
+            user_id=record.user_id if record else None,
+            event="email_verification.failed",
+            request=request,
+            payload={"reason": "invalid_or_expired"},
+        )
+        db.commit()
+        raise ValidationAppError(
+            "This verification link is invalid or has expired.",
+            code="invalid_verification_token",
+        )
+
+    user = db.get(User, record.user_id)
+    if user is None or not user.is_active:
+        _audit(
+            db,
+            user_id=record.user_id,
+            event="email_verification.failed",
+            request=request,
+            payload={"reason": "user_inactive_or_missing"},
+        )
+        db.commit()
+        raise ValidationAppError(
+            "This verification link is invalid or has expired.",
+            code="invalid_verification_token",
+        )
+
+    if user.email_verified_at is None:
+        user.email_verified_at = now
+    record.used_at = now
+    # Invalidate any other outstanding verification tokens for this user.
+    db.query(EmailVerificationToken).filter(
+        EmailVerificationToken.user_id == user.id,
+        EmailVerificationToken.used_at.is_(None),
+        EmailVerificationToken.id != record.id,
+    ).update({EmailVerificationToken.used_at: now})
+
+    _audit(db, user_id=user.id, event="email_verification.completed", request=request)
+    db.commit()
+    log.info("email_verification_completed", user_id=str(user.id))
+    return VerifyEmailResponse()

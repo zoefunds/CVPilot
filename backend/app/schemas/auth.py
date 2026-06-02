@@ -45,3 +45,15 @@ class ResetPasswordRequest(BaseModel):
 
 class ResetPasswordResponse(BaseModel):
     detail: str = "Password updated."
+
+
+class SendVerificationResponse(BaseModel):
+    detail: str = "If your account isn't already verified, a confirmation link is on its way."
+
+
+class VerifyEmailRequest(BaseModel):
+    token: str = Field(min_length=10, max_length=256)
+
+
+class VerifyEmailResponse(BaseModel):
+    detail: str = "Email verified."

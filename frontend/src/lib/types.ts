@@ -5,6 +5,7 @@ export interface UserPublic {
   is_active: boolean;
   is_premium: boolean;
   is_superuser: boolean;
+  email_verified: boolean;
   wallet_address: string | null;
   created_at: string;
 }

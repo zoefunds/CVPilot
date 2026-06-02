@@ -5,8 +5,9 @@ User ORM model.
 from __future__ import annotations
 
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Boolean, String
+from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -25,6 +26,13 @@ class User(Base, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_premium: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     is_superuser: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+
+    # When the user confirmed their email via a verification link.
+    # NULL = unverified; users created before email verification shipped are
+    # backfilled to created_at by the migration so they aren't locked out.
+    email_verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     # GenLayer wallet (permanent, generated at registration)
     wallet_address: Mapped[str | None] = mapped_column(String(64), nullable=True, unique=True, index=True)

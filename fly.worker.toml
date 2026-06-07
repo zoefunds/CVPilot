@@ -25,6 +25,6 @@ kill_timeout = "60s"
   cpus = 1
   memory_mb = 1024
 
-[restart]
+[[restart]]
   policy = "always"
   max_retries = 50

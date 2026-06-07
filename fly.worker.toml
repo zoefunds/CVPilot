@@ -15,7 +15,7 @@ kill_timeout = "60s"
   C_FORCE_ROOT = "1"
 
 [processes]
-  worker = "celery -A workers.celery_app.celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=50"
+  worker = "celery -A workers.celery_app.celery_app worker --loglevel=info --concurrency=2 --max-tasks-per-child=50 --without-mingle --without-gossip --without-heartbeat"
 
 [deploy]
   strategy = "rolling"
@@ -24,3 +24,7 @@ kill_timeout = "60s"
   cpu_kind = "shared"
   cpus = 1
   memory_mb = 1024
+
+[restart]
+  policy = "always"
+  max_retries = 50

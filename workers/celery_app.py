@@ -14,7 +14,8 @@ from backend.app.core.config import settings
 celery_app = Celery(
     "cvpilot",
     broker=settings.celery_broker_url,
-    backend=settings.celery_result_backend,
+    # Result backend disabled: DB tracks evaluation state, saves ~50% Redis ops
+    backend=None,
     include=[
         "workers.tasks.applications",
         "workers.tasks.evaluations",
@@ -33,6 +34,14 @@ celery_app.conf.update(
     task_soft_time_limit=1380,
     worker_max_tasks_per_child=100,
     broker_connection_retry_on_startup=True,
+    task_ignore_result=True,
+    worker_enable_remote_control=False,
+    worker_send_task_events=False,
+    broker_transport_options={
+        "visibility_timeout": 3600,
+        "socket_keepalive": True,
+        "global_keyprefix": "cvpilot:",
+    },
 )
 
 # TLS Redis (rediss://) requires explicit ssl_cert_reqs. Apply via config

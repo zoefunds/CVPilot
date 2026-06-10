@@ -57,7 +57,7 @@ def _run(db: Session, application_id: uuid.UUID) -> None:
     app = db.get(Application, application_id)
     if app is None:
         return
-    if app.status != "ready":
+    if app.status not in ("ready", "complete", "failed"):
         return
 
     ev = _get_or_create_evaluation(db, application_id)

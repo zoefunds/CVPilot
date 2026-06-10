@@ -85,7 +85,10 @@ def _serialise_receipt(receipt) -> dict:
         return out
     for attr in ("status", "consensus_result", "execution_result", "result", "tx_hash", "transaction_hash", "error", "error_message", "stdout", "stderr"):
         try:
-            v = getattr(receipt, attr, None)
+            if isinstance(receipt, dict):
+                v = receipt.get(attr)
+            else:
+                v = getattr(receipt, attr, None)
             if v is None:
                 continue
             out[attr] = str(v)[:2000]

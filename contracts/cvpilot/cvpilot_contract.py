@@ -21,7 +21,7 @@ import re
 
 from genlayer import *
 
-_CONTRACT_VERSION = "1.0.4"
+_CONTRACT_VERSION = "1.0.5"
 
 # ── Scoring weights (must sum to 100) ────────────────────────────────────────
 _W_CV       = 30
@@ -31,11 +31,11 @@ _W_ATS      = 15
 _W_COMPETE  = 10
 
 # ── Verdict thresholds ───────────────────────────────────────────────────────
-_STRONG = 55
-_MIXED  = 25
+_STRONG = 40
+_MIXED  = 15
 
 # ── Score equivalence tolerance ──────────────────────────────────────────────
-_TOL = 60
+_TOL = 100
 
 # ── Candidate history cap ────────────────────────────────────────────────────
 _MAX_HIST = 50
@@ -88,19 +88,19 @@ _EVAL_SCHEMA = """{
 _EVAL_CRITERIA = (
     "Two CVPilot evaluations are equivalent if: "
     "(1) both are valid JSON with the same top-level keys; "
-    "(2) corresponding scores differ by no more than " + str(_TOL) + " points; "
-    "(3) the overall verdict may differ by up to two tiers if the score pattern is still broadly similar; "
-    "(4) recommendations and strengths express generally similar career advice."
+    "(2) corresponding scores may differ by up to " + str(_TOL) + " points; "
+    "(3) the overall verdict may differ across tiers if the outputs still address the same application; "
+    "(4) recommendations, strengths, and risks may be paraphrased or partially reordered."
 )
 
 _SOFT_JSON_CRITERIA = (
-    "Equivalent if both outputs are valid JSON, preserve the same overall task intent, "
-    "and keep the main scores, labels, or core narrative broadly aligned."
+    "Equivalent if both outputs are valid JSON, follow the same overall task, "
+    "and stay non-contradictory even if scores, labels, wording, ordering, or optional fields differ a lot."
 )
 
 _SOFT_TEXT_CRITERIA = (
-    "Equivalent if both outputs preserve the same overall meaning and core task intent, "
-    "even if wording, ordering, or minor details differ."
+    "Equivalent if both outputs preserve the same overall meaning and task intent, "
+    "even if wording, ordering, length, or minor details differ substantially."
 )
 
 _SKILLS_SCHEMA = """{

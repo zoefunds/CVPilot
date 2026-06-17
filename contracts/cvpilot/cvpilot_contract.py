@@ -493,7 +493,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, _EVAL_CRITERIA)
+        result = gl.eq_principle.prompt_non_comparative(_run)
 
         self.evaluations[content_hash] = result
         self.total_evaluated = self.total_evaluated + u256(1)
@@ -557,7 +557,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.skills_analyses[content_hash] = result
         self.total_skills_analyses = self.total_skills_analyses + u256(1)
         return result
@@ -619,7 +619,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.interview_preps[content_hash] = result
         self.total_interview_preps = self.total_interview_preps + u256(1)
         return result
@@ -676,7 +676,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.salary_estimates[content_hash] = result
         self.total_salary_estimates = self.total_salary_estimates + u256(1)
         return result
@@ -709,9 +709,8 @@ class CVPilotEvaluator(gl.Contract):
                 except Exception as exc:
                     return "[fetch error: " + str(exc) + "]"
 
-            portfolio_content = gl.eq_principle.prompt_comparative(
+            portfolio_content = gl.eq_principle.prompt_non_comparative(
                 _fetch,
-                "Both fetches return substantially similar text from the same URL.",
             )
 
         prompt = (
@@ -750,7 +749,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.portfolio_assessments[content_hash] = result
         self.total_portfolio_assessments = self.total_portfolio_assessments + u256(1)
         return result
@@ -807,7 +806,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.career_analyses[content_hash] = result
         self.total_career_analyses = self.total_career_analyses + u256(1)
         return result
@@ -868,7 +867,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.cover_letter_analyses[content_hash] = result
         self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
         return result
@@ -902,9 +901,8 @@ class CVPilotEvaluator(gl.Contract):
                 except Exception as exc:
                     return "[fetch error: " + str(exc) + "]"
 
-            web_content = gl.eq_principle.prompt_comparative(
+            web_content = gl.eq_principle.prompt_non_comparative(
                 _fetch,
-                "Both fetches return substantially similar text from the same URL.",
             )
 
         prompt = (
@@ -942,7 +940,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.job_intel_cache[job_hash] = result
         self.total_job_intel = self.total_job_intel + u256(1)
         return result
@@ -995,7 +993,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.evaluations[store_key] = result
         return result
 
@@ -1044,7 +1042,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return str(raw).strip()
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.evaluations[store_key] = result
         return result
 
@@ -1108,7 +1106,7 @@ class CVPilotEvaluator(gl.Contract):
             raw = gl.nondet.exec_prompt(prompt)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(_run, criteria)
+        result = gl.eq_principle.prompt_non_comparative(_run)
         self.evaluations[store_key] = result
         return result
 
@@ -1168,7 +1166,7 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_eval_prompt)
                 return json.dumps(_parse(str(raw), _fb_e), sort_keys=True)
 
-            eval_result = gl.eq_principle.prompt_comparative(_ev, _EVAL_CRITERIA)
+            eval_result = gl.eq_principle.prompt_non_comparative(_ev)
             self.evaluations[content_hash] = eval_result
             self.total_evaluated = self.total_evaluated + u256(1)
             if linkedin_url:
@@ -1197,10 +1195,7 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_sk_prompt)
                 return json.dumps(_parse(str(raw), _fb_sk), sort_keys=True)
 
-            skills_result = gl.eq_principle.prompt_comparative(
-                _sk,
-                "Equivalent if skill_match_score within 40 pts and gap_skills overlap on at least some important items.",
-            )
+            skills_result = gl.eq_principle.prompt_non_comparative(_sk)
             self.skills_analyses[content_hash] = skills_result
             self.total_skills_analyses = self.total_skills_analyses + u256(1)
 
@@ -1226,10 +1221,7 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_ca_prompt)
                 return json.dumps(_parse(str(raw), _fb_ca), sort_keys=True)
 
-            career_result = gl.eq_principle.prompt_comparative(
-                _ca,
-                "Equivalent if trajectory_score within 40 pts and seniority_level same.",
-            )
+            career_result = gl.eq_principle.prompt_non_comparative(_ca)
             self.career_analyses[content_hash] = career_result
             self.total_career_analyses = self.total_career_analyses + u256(1)
 
@@ -1254,10 +1246,7 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_cl_prompt)
                 return json.dumps(_parse(str(raw), _fb_cl), sort_keys=True)
 
-            cl_result = gl.eq_principle.prompt_comparative(
-                _cl,
-                "Equivalent if score within 40 pts and tone_match same.",
-            )
+            cl_result = gl.eq_principle.prompt_non_comparative(_cl)
             self.cover_letter_analyses[content_hash] = cl_result
             self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
 
@@ -1281,10 +1270,7 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_sal_prompt)
                 return json.dumps(_parse(str(raw), _fb_sal), sort_keys=True)
 
-            salary_result = gl.eq_principle.prompt_comparative(
-                _sal,
-                "Equivalent if range_mid within 45%, confidence same, currency same.",
-            )
+            salary_result = gl.eq_principle.prompt_non_comparative(_sal)
             self.salary_estimates[content_hash] = salary_result
             self.total_salary_estimates = self.total_salary_estimates + u256(1)
 

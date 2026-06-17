@@ -1,138 +1,88 @@
 # CVPilot
 
-AI-powered job application intelligence platform. CVPilot evaluates CVs, cover letters,
-and job descriptions using GenLayer Intelligent Contracts + LLM consensus, returning
-transparent, verifiable scoring and actionable career recommendations.
+CVPilot is a job-application intelligence platform that helps a candidate
+understand how a CV, cover letter, portfolio, and job description fit together.
+It combines a web app, backend services, and a GenLayer Intelligent Contract to
+produce verifiable application analysis instead of a hidden black-box score.
 
----
+## What the website does
 
-## Live deployments
+The website is the user-facing dashboard for the application.
 
-| Service | URL |
-|---------|-----|
-| Frontend (Vercel) | https://cvpilot-theta.vercel.app |
-| Backend API (Fly.io) | https://cvpilot-api.fly.dev |
-| Worker (Fly.io) | https://cvpilot-worker.fly.dev |
-| GenLayer StudioNet | https://studio.genlayer.com |
+- Upload or submit a CV, cover letter, and job details.
+- Generate application scores and breakdowns.
+- Review skills gaps, salary guidance, interview prep, and strategy advice.
+- Track historical evaluations by content hash.
+- Inspect a verification page for a specific evaluation result.
+- Manage account settings, applications, and admin views.
 
----
+## What the contract does
 
-## Smart contract
+The on-chain GenLayer contract is the trust layer behind the platform.
 
-| Property | Value |
-|----------|-------|
-| Contract | `CVPilotEvaluator` |
-| Version | `1.0.1` |
-| Network | GenLayer StudioNet |
-| Address | `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` |
-| Explorer | https://studio.genlayer.com/explorer |
-| Source | [`contracts/cvpilot/cvpilot_contract.py`](contracts/cvpilot/cvpilot_contract.py) |
+- Receives the application inputs from the backend.
+- Runs nondeterministic LLM reasoning inside GenLayer.
+- Uses validator consensus to finalize results.
+- Normalizes JSON so the backend stores clean data.
+- Caches results by content hash so the same submission returns the same
+  canonical output.
+- Exposes analysis methods for evaluation, skills gaps, salary, portfolio,
+  career trajectory, cover letter review, job intelligence, ATS keywords,
+  positioning, and application strategy.
 
-### Contract capabilities
+The contract address currently wired into the app is:
 
-| # | Method | What it does |
-|---|--------|-------------|
-| 1 | `evaluate_application` | Full ATS + recruiter evaluation across 5 weighted dimensions |
-| 2 | `analyse_skills_gap` | Candidate vs required skills with upskilling roadmap |
-| 3 | `generate_interview_prep` | Behavioral, technical, situational & culture-fit questions |
-| 4 | `estimate_salary` | Salary range + negotiation tips for target location |
-| 5 | `assess_portfolio` | Live portfolio fetch + quality scoring |
-| 6 | `analyse_career_trajectory` | Seniority, progression type, promotion velocity, risks |
-| 7 | `analyse_cover_letter` | Tone, personalisation, storytelling, CTA strength |
-| 8 | `analyse_job_posting` | Company stage, tech stack, red flags, culture signals |
-| 9 | `suggest_ats_keywords` | Priority keyword injection map per CV section |
-| 10 | `rewrite_positioning` | AI-drafted professional summary (tone-controlled) |
-| 11 | `advise_application_strategy` | Stage-aware next-step playbook |
-| 12 | `run_full_suite` | All core analyses in one transaction with caching |
+`0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac`
 
-All write methods use `gl.eq_principle.prompt_comparative` to reach GenLayer validator
-consensus on non-deterministic LLM outputs before writing to chain state.
+## How the system fits together
 
----
+1. The frontend collects user inputs and displays results.
+2. The backend validates the request, stores metadata, and calls GenLayer.
+3. The contract generates a result using nondeterministic prompts.
+4. GenLayer validators compare the outputs and reach consensus.
+5. The backend stores the finalized JSON response.
+6. The frontend renders the result and verification view.
 
 ## Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 14 · TypeScript · TailwindCSS |
-| Backend | FastAPI · SQLAlchemy · Alembic |
-| Database | PostgreSQL 15 |
-| Cache / Queue | Redis 7 · Celery |
-| AI / Blockchain | GenLayer Intelligent Contracts (StudioNet) |
-| Frontend host | Vercel |
-| Backend host | Fly.io (two apps: api + worker) |
-| Email | Brevo (transactional) |
+- Frontend: Next.js + TypeScript + TailwindCSS
+- Backend: FastAPI + SQLAlchemy + PostgreSQL
+- Cache: Redis
+- Queue: Celery
+- LLM / consensus: GenLayer
+- Blockchain: GenLayer Intelligent Contracts on StudioNet
 
----
+## Key concepts
+
+- Content hash: the stable key used to identify one application submission.
+- Consensus result: the finalized output after validator agreement.
+- Nondeterminism: LLM variability that is intentionally preserved inside the
+  contract so GenLayer can resolve it through consensus.
+- Verification: the public route and dashboard views that let users inspect a
+  stored result by hash.
 
 ## Repository layout
 
-```
-CVPilot/
-├── contracts/
-│   └── cvpilot/
-│       └── cvpilot_contract.py   # GenLayer Intelligent Contract (v1.0.0)
-├── backend/
-│   ├── app/
-│   │   ├── core/         # Config, startup guard, security
-│   │   ├── models/       # SQLAlchemy ORM models
-│   │   ├── schemas/      # Pydantic request/response schemas
-│   │   ├── routes/       # FastAPI routers
-│   │   └── db/           # Alembic migrations
-│   └── tests/
-├── frontend/
-│   ├── src/
-│   │   ├── app/          # Next.js App Router pages
-│   │   ├── components/   # React components
-│   │   └── lib/          # API client, types, utils
-│   └── vercel.json       # Vercel config + API rewrites
-├── workers/
-│   └── tasks/            # Celery tasks (evaluation pipeline)
-├── services/
-│   └── llm/
-│       └── genlayer.py   # GenLayer SDK client wrapper
-├── docs/
-│   ├── architecture/
-│   ├── contracts/
-│   └── runbooks/
-├── fly.api.toml          # Fly.io API app config
-├── fly.worker.toml       # Fly.io worker app config
-├── Procfile              # Process definitions
-└── pyproject.toml        # Python project config
-```
+- [`contracts/`](contracts) - GenLayer contract source and contract docs.
+- [`frontend/`](frontend) - Next.js app.
+- [`backend/`](backend) - API and database models.
+- [`workers/`](workers) - asynchronous background jobs.
+- [`services/`](services) - shared GenLayer and LLM client code.
+- [`docs/`](docs) - deployment and architecture notes.
+- [`scripts/`](scripts) - scaffolds and operational helpers.
 
----
+## Deployment overview
+
+- Frontend: Vercel
+- API: Fly.io
+- Worker: Fly.io
+- Contract network: GenLayer StudioNet
 
 ## Environment variables
 
-### Backend / Worker
-
-Copy `.env.example` to `.env` and fill in the values.
-
-| Variable | Description |
-|----------|-------------|
-| `APP_SECRET_KEY` | 64-char random secret (`openssl rand -base64 48`) |
-| `DATABASE_URL` | PostgreSQL DSN (`postgresql+psycopg://...`) |
-| `REDIS_URL` | Redis DSN |
-| `GENLAYER_CONTRACT_ADDRESS` | `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` |
-| `GENLAYER_STUDIONET_RPC` | `https://studio.genlayer.com/api` |
-| `GENLAYER_ACCOUNT_PRIVATE_KEY` | Funded StudioNet wallet private key |
-| `APP_FRONTEND_ORIGIN` | CORS origin (`https://cvpilot-theta.vercel.app`) |
-| `BREVO_API_KEY` | Brevo transactional email key |
-| `BREVO_SENDER_EMAIL` | Verified sender address |
-
-### Frontend
-
-Copy `frontend/.env.production.example` and set as Vercel environment variables.
-
-| Variable | Value |
-|----------|-------|
-| `NEXT_PUBLIC_API_BASE_URL` | `/api` (proxied via Vercel rewrites) |
-| `NEXT_PUBLIC_GENLAYER_CONTRACT_ADDRESS` | `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` |
-| `NEXT_PUBLIC_GENLAYER_EXPLORER` | `https://studio.genlayer.com/explorer` |
-| `NEXT_PUBLIC_SITE_ORIGIN` | `https://cvpilot-theta.vercel.app` |
-
----
+The live deployment depends on `GENLAYER_CONTRACT_ADDRESS` being set in the API
+and worker environments, and `NEXT_PUBLIC_GENLAYER_CONTRACT_ADDRESS` being set
+for the frontend where required by the UI.
 
 ## Local development
 
@@ -160,8 +110,6 @@ celery -A workers.celery_app worker --loglevel=info
 cd frontend && npm install && npm run dev
 ```
 
----
-
 ## Deploy
 
 ### Backend (Fly.io)
@@ -174,26 +122,49 @@ fly secrets set -a cvpilot-api \
 fly secrets set -a cvpilot-worker \
   GENLAYER_CONTRACT_ADDRESS="0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac"
 
-# Deploy
+# Deploy API and worker
 fly deploy -c fly.api.toml
 fly deploy -c fly.worker.toml
 ```
 
 ### Frontend (Vercel)
 
-Push to `main` — Vercel auto-deploys on every push.
-Ensure `NEXT_PUBLIC_GENLAYER_CONTRACT_ADDRESS` is set to
-`0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` in the Vercel project settings.
+Push to `main` and Vercel auto-deploys, or run a manual production deploy from
+the `frontend/` directory.
 
-Full deploy runbook: [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md)
+### Contract
 
----
+The contract is deployed separately on GenLayer StudioNet. See
+[`contracts/cvpilot/README.md`](contracts/cvpilot/README.md) for the contract
+deployment workflow.
 
-## Verification
+## Contract summary
 
-Every evaluation result is anchored on-chain. The public
-`/verify/<content_hash>` route shows the full result, contract address,
-and transaction hash — verifiable by anyone without an account.
+CVPilotEvaluator is the on-chain contract that powers the platform’s verifiable
+scoring and analysis:
 
-Contract address: `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac`
-Explorer: https://studio.genlayer.com/explorer
+- `evaluate_application` for the main application review
+- `analyse_skills_gap` for skills matching and ramp-up planning
+- `generate_interview_prep` for interview question generation
+- `estimate_salary` for compensation guidance
+- `assess_portfolio` for portfolio quality review
+- `analyse_career_trajectory` for growth and seniority analysis
+- `analyse_cover_letter` for cover letter review
+- `analyse_job_posting` for job intelligence extraction
+- `suggest_ats_keywords` for ATS keyword recommendations
+- `rewrite_positioning` for executive summary rewrites
+- `advise_application_strategy` for stage-aware next steps
+- `run_full_suite` for the full evaluation bundle
+
+## Why it exists
+
+- It gives the app a transparent and auditable source of truth.
+- It keeps the LLM output inside validator consensus instead of trusting a
+  single model response.
+- It lets the backend and dashboard present one canonical result per submission.
+
+## More docs
+
+- [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md)
+- [`contracts/cvpilot/README.md`](contracts/cvpilot/README.md)
+- [`docs/architecture/`](docs/architecture)

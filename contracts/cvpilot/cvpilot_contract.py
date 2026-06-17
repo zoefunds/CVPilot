@@ -494,6 +494,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return a valid JSON string matching the schema. Minor wording differences are acceptable.",
         )
@@ -561,6 +562,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the main missing skills and roadmap directionally similar.",
         )
@@ -626,6 +628,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the important question themes and talking points relevant.",
         )
@@ -686,6 +689,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the salary estimate and leverage points broadly sensible.",
         )
@@ -722,6 +726,7 @@ class CVPilotEvaluator(gl.Contract):
                     return "[fetch error: " + str(exc) + "]"
 
             portfolio_content = gl.eq_principle.prompt_non_comparative(
+                fn=_fetch,
                 task=_fetch,
                 criteria="Return the fetched page text as-is, or a readable error string if fetching fails.",
             )
@@ -763,6 +768,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the portfolio assessment generally aligned with the evidence.",
         )
@@ -823,6 +829,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the career trajectory assessment broadly aligned.",
         )
@@ -887,6 +894,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the cover letter themes and tone assessment broadly aligned.",
         )
@@ -924,6 +932,7 @@ class CVPilotEvaluator(gl.Contract):
                     return "[fetch error: " + str(exc) + "]"
 
             web_content = gl.eq_principle.prompt_non_comparative(
+                fn=_fetch,
                 task=_fetch,
                 criteria="Return the fetched page text as-is, or a readable error string if fetching fails.",
             )
@@ -964,6 +973,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the job intelligence broadly aligned with the description.",
         )
@@ -1020,6 +1030,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the ATS keyword recommendations broadly similar.",
         )
@@ -1072,6 +1083,7 @@ class CVPilotEvaluator(gl.Contract):
             return str(raw).strip()
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return the summary text with the same core positioning and company focus.",
         )
@@ -1139,6 +1151,7 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
+            fn=_run,
             task=_run,
             criteria="Return valid JSON. Keep the strategy recommendations broadly aligned.",
         )
@@ -1202,6 +1215,7 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_e), sort_keys=True)
 
             eval_result = gl.eq_principle.prompt_non_comparative(
+                fn=_ev,
                 task=_ev,
                 criteria="Return valid JSON. Keep the overall evaluation broadly aligned with the input.",
             )
@@ -1234,6 +1248,7 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_sk), sort_keys=True)
 
             skills_result = gl.eq_principle.prompt_non_comparative(
+                fn=_sk,
                 task=_sk,
                 criteria="Return valid JSON. Keep the skills gap analysis broadly aligned.",
             )
@@ -1263,6 +1278,7 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_ca), sort_keys=True)
 
             career_result = gl.eq_principle.prompt_non_comparative(
+                fn=_ca,
                 task=_ca,
                 criteria="Return valid JSON. Keep the career trajectory analysis broadly aligned.",
             )
@@ -1291,6 +1307,7 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_cl), sort_keys=True)
 
             cl_result = gl.eq_principle.prompt_non_comparative(
+                fn=_cl,
                 task=_cl,
                 criteria="Return valid JSON. Keep the cover letter assessment broadly aligned.",
             )
@@ -1318,6 +1335,7 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_sal), sort_keys=True)
 
             salary_result = gl.eq_principle.prompt_non_comparative(
+                fn=_sal,
                 task=_sal,
                 criteria="Return valid JSON. Keep the salary estimate broadly aligned.",
             )

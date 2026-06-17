@@ -6,7 +6,7 @@ contract source to what is actually on-chain.
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")
-ADDR = "0xDc1A7934F298C2162dFC57709fBd1AeD6259CB2c"
+ADDR = "0x539552a2C7023e28086532C57Ee945963C4AcAEc"
 
 # 1. Update .env
 env_path = ROOT / ".env"
@@ -29,7 +29,7 @@ contract_src = '''# v0.2.16
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 #
 # CVPilotEvaluator v0.2.0
-# DEPLOYED on StudioNet at: 0xDc1A7934F298C2162dFC57709fBd1AeD6259CB2c
+# DEPLOYED on StudioNet at: 0x539552a2C7023e28086532C57Ee945963C4AcAEc
 #
 # Lesson learned: in v0.2.16, parameter/return type hints on @gl.public methods
 # break execution. Plain Python (no annotations) is the safe path. Storage

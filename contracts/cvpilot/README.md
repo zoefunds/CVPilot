@@ -10,7 +10,7 @@ of job applications (CV + cover letter + job description + career intelligence).
 | Contract | `CVPilotEvaluator` |
 | Version | `1.0.1` |
 | Network | GenLayer StudioNet |
-| Address | `0xDc1A7934F298C2162dFC57709fBd1AeD6259CB2c` |
+| Address | `0x539552a2C7023e28086532C57Ee945963C4AcAEc` |
 | Explorer | https://studio.genlayer.com/explorer |
 
 ## Source

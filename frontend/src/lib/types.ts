@@ -121,6 +121,70 @@ export interface EvaluationRationale {
   overall_score?: string;
 }
 
+export interface SkillsAnalysis {
+  candidate_skills: string[];
+  required_skills: string[];
+  gap_skills: string[];
+  bonus_skills: string[];
+  skill_match_score: number;
+  skill_categories: {
+    technical: string[];
+    soft: string[];
+    domain: string[];
+    certifications: string[];
+  };
+  upskilling_roadmap: string[];
+  estimated_ramp_weeks: number;
+  summary: string;
+}
+
+export interface CareerAnalysis {
+  trajectory_score: number;
+  progression_type: string;
+  years_of_experience: number;
+  seniority_level: string;
+  career_highlights: string[];
+  career_gaps: string[];
+  promotion_velocity: string;
+  industry_breadth: string[];
+  specialist_areas: string[];
+  growth_potential: string;
+  risks: string[];
+  summary: string;
+}
+
+export interface CoverLetterAnalysis {
+  score: number;
+  tone_match: string;
+  personalization_score: number;
+  storytelling_score: number;
+  call_to_action_strength: string;
+  keyword_density_score: number;
+  length_appropriateness: string;
+  strengths: string[];
+  weaknesses: string[];
+  suggested_rewrites: string[];
+  summary: string;
+}
+
+export interface SalaryEstimate {
+  currency: string;
+  range_low: number;
+  range_mid: number;
+  range_high: number;
+  confidence: string;
+  rationale: string;
+  negotiation_tips: string[];
+  market_signals: string[];
+}
+
+export interface EvaluationExtras {
+  skills_analysis?: SkillsAnalysis;
+  career_analysis?: CareerAnalysis;
+  cover_letter_analysis?: CoverLetterAnalysis;
+  salary_estimate?: SalaryEstimate;
+}
+
 export interface EvaluationPublic {
   id: string;
   application_id: string;
@@ -142,6 +206,7 @@ export interface EvaluationPublic {
   strengths: string[];
   risks: string[];
   rationale: EvaluationRationale | null;
+  extras: EvaluationExtras | null;
   raw: Record<string, unknown> | null;
   error: string | null;
   contract_tx_hash: string | null;
@@ -171,6 +236,7 @@ export interface PublicEvaluation {
   strengths: string[];
   risks: string[];
   rationale: EvaluationRationale | null;
+  extras: EvaluationExtras | null;
 }
 
 export interface AdminStats {

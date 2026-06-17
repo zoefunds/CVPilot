@@ -35,6 +35,7 @@ class LLMEvaluation:
     risks: list[str]
     rationale: dict
     raw: dict
+    extras: dict = field(default_factory=dict)
 
 
 class LLMClient(Protocol):

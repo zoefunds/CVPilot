@@ -17,7 +17,7 @@ from backend.app.core.errors import ValidationAppError
 from backend.app.core.logging import get_logger
 from backend.app.dependencies.rate_limit import limiter
 from backend.app.schemas.public import PublicEvaluation
-from services.genlayer import fetch_stored_evaluation
+from services.genlayer import fetch_extras, fetch_stored_evaluation
 
 router = APIRouter(prefix="/public", tags=["public"])
 log = get_logger("public")
@@ -51,6 +51,8 @@ def verify(request: Request, content_hash: str):
 
     log.info("verify_hit", content_hash=content_hash[:12])
 
+    extras = fetch_extras(content_hash)
+
     return PublicEvaluation(
         content_hash=content_hash,
         contract_address=settings.genlayer_contract_address,
@@ -71,4 +73,5 @@ def verify(request: Request, content_hash: str):
         strengths=list(parsed.get("strengths") or []),
         risks=list(parsed.get("risks") or []),
         rationale=rationale,
+        extras=extras or None,
     )

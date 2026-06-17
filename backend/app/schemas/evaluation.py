@@ -43,6 +43,9 @@ class EvaluationPublic(BaseModel):
     # Per-score rationale
     rationale: dict | None = None
 
+    # Extended analyses (skills gap, career, cover letter, salary)
+    extras: dict | None = None
+
     # Provenance
     raw: dict | None = None
     error: str | None = None

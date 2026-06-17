@@ -72,3 +72,6 @@ class Evaluation(Base, TimestampMixin):
     contract_tx_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     content_hash: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     contract_address: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+    # Extended contract analyses (skills gap, career, cover letter, salary)
+    extras: Mapped[dict | None] = mapped_column(JSON, nullable=True)

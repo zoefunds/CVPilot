@@ -10,6 +10,7 @@ import { Icon } from "@/components/icons/Icon";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useToast } from "@/contexts/ToastContext";
 import { ApiError, applicationsApi } from "@/lib/api";
+import { ExtrasPanel } from "@/components/verify/EvaluationDisplay";
 import type { ApplicationPublic, EvaluationPublic } from "@/lib/types";
 
 function shortHash(h: string | null | undefined): string {
@@ -595,6 +596,8 @@ function EvaluationView({
           </div>
         </section>
       ) : null}
+
+      {ev.extras ? <ExtrasPanel extras={ev.extras} /> : null}
 
       <section>
         <h2

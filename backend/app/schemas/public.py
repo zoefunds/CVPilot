@@ -29,6 +29,7 @@ class PublicEvaluation(BaseModel):
     strengths: list[str] = Field(default_factory=list)
     risks: list[str] = Field(default_factory=list)
     rationale: dict | None = None
+    extras: dict | None = None
 
     @field_validator(
         "missing_keywords", "missing_skills", "recommendations",

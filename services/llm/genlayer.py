@@ -255,17 +255,26 @@ class GenLayerLLMClient(LLMClient):
         job = _truncate(job_text, _JOB_MAX)
         title = job_title or ""
         url = job_url or ""
+        loc = ""
+        company = title  # best proxy without a dedicated field
         h = _normalised_content_hash(cv=cv, cl=cl, job=job, title=title, job_url=url, linkedin_url=linkedin_url or "", portfolio_url=portfolio_url or "")
+        job_h = hashlib.sha256((url or job[:64]).encode()).hexdigest()
 
-        ok, existing = self._try_read("get_evaluation", [h])
-        if ok and existing:
-            return self._build_evaluation(existing, contract_tx_hash=None, content_hash=h, receipt=None)
+        # If the full suite was already run, read all results from cache.
+        ok, existing_eval = self._try_read("get_evaluation", [h])
+        if ok and existing_eval:
+            extras = self._read_extras(h, job_h)
+            return self._build_evaluation(existing_eval, contract_tx_hash=None, content_hash=h, receipt=None, extras=extras)
 
-        log.info("genlayer_evaluate_dispatch", content_hash=h[:12])
-        tx_hash, receipt = self._write_and_finalize("evaluate_application", [h, cv, cl, job, title, url, linkedin_url or "", portfolio_url or ""])
+        log.info("genlayer_suite_dispatch", content_hash=h[:12])
+        tx_hash, receipt = self._write_and_finalize(
+            "run_full_suite",
+            [h, job_h, cv, cl, job, title, url, company, linkedin_url or "", portfolio_url or "", loc],
+        )
         receipt_dict = _serialise_receipt(receipt)
-        log.info("genlayer_evaluate_landed", content_hash=h[:12], tx_hash=tx_hash, receipt=receipt_dict)
+        log.info("genlayer_suite_landed", content_hash=h[:12], tx_hash=tx_hash)
 
+        # Poll for the evaluation result (same approach as before).
         deadline = time.time() + _READ_POLL_S
         stored, polls = None, 0
         while time.time() < deadline:
@@ -278,35 +287,38 @@ class GenLayerLLMClient(LLMClient):
         log.info("genlayer_read_poll_done", content_hash=h[:12], polls=polls, found=stored is not None)
 
         if not stored:
-            # Fallback: extract the evaluation JSON directly from the
-            # receipt. The leader validator returned the JSON as part of
-            # the transaction, so even if the on-chain storage poll comes
-            # back empty (read replica lag, indexing issue, or contract
-            # storage quirk), the data is still in the receipt we already
-            # have.
             from_receipt = _extract_eval_json_from_receipt(receipt)
             if from_receipt:
-                log.warning(
-                    "genlayer_used_receipt_fallback",
-                    content_hash=h[:12],
-                    tx_hash=tx_hash,
-                    polls=polls,
-                )
-                return self._build_evaluation(
-                    from_receipt,
-                    contract_tx_hash=tx_hash,
-                    content_hash=h,
-                    receipt=receipt_dict,
-                )
+                log.warning("genlayer_used_receipt_fallback", content_hash=h[:12], tx_hash=tx_hash, polls=polls)
+                return self._build_evaluation(from_receipt, contract_tx_hash=tx_hash, content_hash=h, receipt=receipt_dict, extras={})
             raise GenLayerClientError(
                 f"Contract accepted the write but get_evaluation returned empty after {polls} polls "
                 f"and the receipt did not contain a parsable evaluation. "
                 f"Tx {tx_hash}. Receipt: {json.dumps(receipt_dict)[:1500]}",
                 code="genlayer_storage_not_persistent",
             )
-        return self._build_evaluation(stored, contract_tx_hash=tx_hash, content_hash=h, receipt=receipt_dict)
 
-    def _build_evaluation(self, raw_json, *, contract_tx_hash, content_hash, receipt) -> LLMEvaluation:
+        extras = self._read_extras(h, job_h)
+        return self._build_evaluation(stored, contract_tx_hash=tx_hash, content_hash=h, receipt=receipt_dict, extras=extras)
+
+    def _read_extras(self, content_hash: str, job_hash: str) -> dict:
+        """Best-effort reads of the supplementary analyses. Never raises."""
+        out: dict = {}
+        for key, fn, arg in [
+            ("skills_analysis",       "get_skills_analysis",       content_hash),
+            ("career_analysis",       "get_career_analysis",       content_hash),
+            ("cover_letter_analysis", "get_cover_letter_analysis", content_hash),
+            ("salary_estimate",       "get_salary_estimate",       content_hash),
+        ]:
+            ok, raw = self._try_read(fn, [arg])
+            if ok and raw:
+                try:
+                    out[key] = json.loads(raw) if isinstance(raw, str) else raw
+                except Exception:
+                    pass
+        return out
+
+    def _build_evaluation(self, raw_json, *, contract_tx_hash, content_hash, receipt, extras=None) -> LLMEvaluation:
         parsed = raw_json if isinstance(raw_json, dict) else (json.loads(raw_json) if raw_json else {})
         if not isinstance(parsed, dict):
             parsed = {}
@@ -339,9 +351,10 @@ class GenLayerLLMClient(LLMClient):
             strengths=list(parsed.get("strengths") or []),
             risks=list(parsed.get("risks") or []),
             rationale=dict(rationale_obj),
+            extras=extras or {},
             raw={
                 "backend": "genlayer",
-                "version": "0.3.1",
+                "version": "1.0.0",
                 "contract_address": self._address,
                 "contract_tx_hash": contract_tx_hash,
                 "content_hash": content_hash,

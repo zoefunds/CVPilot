@@ -102,6 +102,7 @@ def _run(db: Session, application_id: uuid.UUID) -> None:
         ev.strengths = list(r.strengths)
         ev.risks = list(r.risks)
         ev.rationale = dict(r.rationale) if r.rationale else None
+        ev.extras = dict(r.extras) if r.extras else None
         ev.raw = r.raw
         ev.contract_tx_hash = (r.raw or {}).get("contract_tx_hash")
         ev.content_hash = (r.raw or {}).get("content_hash")

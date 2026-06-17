@@ -8,9 +8,9 @@ of job applications (CV + cover letter + job description + career intelligence).
 | Property | Value |
 |----------|-------|
 | Contract | `CVPilotEvaluator` |
-| Version | `1.0.0` |
+| Version | `1.0.1` |
 | Network | GenLayer StudioNet |
-| Address | `0xb3fd3B5B7ae263DB281625fe6a51a5B182D01493` |
+| Address | `0x58D88438Ce840A31d9951048929521963E9396f0` |
 | Explorer | https://studio.genlayer.com/explorer |
 
 ## Source

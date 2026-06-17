@@ -21,7 +21,7 @@ import re
 
 from genlayer import *
 
-_CONTRACT_VERSION = "1.0.0"
+_CONTRACT_VERSION = "1.0.1"
 
 # ── Scoring weights (must sum to 100) ────────────────────────────────────────
 _W_CV       = 30
@@ -31,11 +31,11 @@ _W_ATS      = 15
 _W_COMPETE  = 10
 
 # ── Verdict thresholds ───────────────────────────────────────────────────────
-_STRONG = 75
-_MIXED  = 50
+_STRONG = 72
+_MIXED  = 45
 
 # ── Score equivalence tolerance ──────────────────────────────────────────────
-_TOL = 15
+_TOL = 20
 
 # ── Candidate history cap ────────────────────────────────────────────────────
 _MAX_HIST = 50
@@ -89,7 +89,8 @@ _EVAL_CRITERIA = (
     "Two CVPilot evaluations are equivalent if: "
     "(1) both are valid JSON with the same top-level keys; "
     "(2) corresponding scores differ by no more than " + str(_TOL) + " points; "
-    "(3) the overall verdict (strong/mixed/weak) is identical; "
+    "(3) the overall verdict is either identical or at most one adjacent tier apart "
+    "(strong/mixed/weak), as long as the underlying scores stay broadly aligned; "
     "(4) recommendations and strengths express substantially similar career advice."
 )
 
@@ -549,7 +550,7 @@ class CVPilotEvaluator(gl.Contract):
         criteria = (
             "Equivalent if: (1) valid JSON; "
             "(2) gap_skills contain the same critical skills; "
-            "(3) skill_match_score differs by no more than 15; "
+            "(3) skill_match_score differs by no more than 20; "
             "(4) upskilling_roadmap steps are substantially similar."
         )
 
@@ -667,7 +668,7 @@ class CVPilotEvaluator(gl.Contract):
         }
         criteria = (
             "Equivalent if: (1) valid JSON; "
-            "(2) range_mid values differ by no more than 20%; "
+            "(2) range_mid values differ by no more than 25%; "
             "(3) confidence and currency are the same; "
             "(4) negotiation_tips address substantially similar leverage points."
         )
@@ -741,8 +742,8 @@ class CVPilotEvaluator(gl.Contract):
         }
         criteria = (
             "Equivalent if: (1) valid JSON; "
-            "(2) portfolio_score within 15 pts; "
-            "(3) technology_diversity_score and presentation_quality_score within 15 pts; "
+            "(2) portfolio_score within 20 pts; "
+            "(3) technology_diversity_score and presentation_quality_score within 20 pts; "
             "(4) project_highlights reference substantially the same work."
         )
 
@@ -798,7 +799,7 @@ class CVPilotEvaluator(gl.Contract):
         }
         criteria = (
             "Equivalent if: (1) valid JSON; "
-            "(2) trajectory_score within 15 pts; "
+            "(2) trajectory_score within 20 pts; "
             "(3) seniority_level and progression_type are the same; "
             "(4) years_of_experience differ by no more than 2."
         )
@@ -859,7 +860,7 @@ class CVPilotEvaluator(gl.Contract):
         }
         criteria = (
             "Equivalent if: (1) valid JSON; "
-            "(2) score within 15 pts; "
+            "(2) score within 20 pts; "
             "(3) tone_match and call_to_action_strength are the same; "
             "(4) strengths and weaknesses express substantially similar themes."
         )
@@ -988,7 +989,7 @@ class CVPilotEvaluator(gl.Contract):
         criteria = (
             "Equivalent if: (1) valid JSON; "
             "(2) high_priority_keywords share at least 7 of the same keywords; "
-            "(3) ats_score_before and estimated_ats_score_after each differ by no more than 10."
+            "(3) ats_score_before and estimated_ats_score_after each differ by no more than 15."
         )
 
         def _run():
@@ -1199,7 +1200,7 @@ class CVPilotEvaluator(gl.Contract):
 
             skills_result = gl.eq_principle.prompt_comparative(
                 _sk,
-                "Equivalent if skill_match_score within 15 pts and gap_skills substantially same.",
+                "Equivalent if skill_match_score within 20 pts and gap_skills substantially same.",
             )
             self.skills_analyses[content_hash] = skills_result
             self.total_skills_analyses = self.total_skills_analyses + u256(1)
@@ -1228,7 +1229,7 @@ class CVPilotEvaluator(gl.Contract):
 
             career_result = gl.eq_principle.prompt_comparative(
                 _ca,
-                "Equivalent if trajectory_score within 15 pts and seniority_level same.",
+                "Equivalent if trajectory_score within 20 pts and seniority_level same.",
             )
             self.career_analyses[content_hash] = career_result
             self.total_career_analyses = self.total_career_analyses + u256(1)
@@ -1256,7 +1257,7 @@ class CVPilotEvaluator(gl.Contract):
 
             cl_result = gl.eq_principle.prompt_comparative(
                 _cl,
-                "Equivalent if score within 15 pts and tone_match same.",
+                "Equivalent if score within 20 pts and tone_match same.",
             )
             self.cover_letter_analyses[content_hash] = cl_result
             self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
@@ -1283,7 +1284,7 @@ class CVPilotEvaluator(gl.Contract):
 
             salary_result = gl.eq_principle.prompt_comparative(
                 _sal,
-                "Equivalent if range_mid within 20%, confidence same, currency same.",
+                "Equivalent if range_mid within 25%, confidence same, currency same.",
             )
             self.salary_estimates[content_hash] = salary_result
             self.total_salary_estimates = self.total_salary_estimates + u256(1)

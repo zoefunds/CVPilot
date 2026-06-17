@@ -1,70 +1,77 @@
 # CVPilot Intelligent Contract
 
-A GenLayer Intelligent Contract that performs verifiable, consensus-driven
-evaluation of a job application (CV + cover letter + job description).
+GenLayer Intelligent Contract powering verifiable, consensus-driven evaluation
+of job applications (CV + cover letter + job description + career intelligence).
+
+## Deployed contract
+
+| Property | Value |
+|----------|-------|
+| Contract | `CVPilotEvaluator` |
+| Version | `1.0.0` |
+| Network | GenLayer StudioNet |
+| Address | `0xb3fd3B5B7ae263DB281625fe6a51a5B182D01493` |
+| Explorer | https://studio.genlayer.com/explorer |
 
 ## Source
 
-`cvpilot_contract.py`
+`cvpilot_contract.py` — 1,298 lines, 12 public write methods, full suite.
 
-## Deploy to StudioNet (web IDE)
+## Capabilities
 
-You will deploy this contract once and paste the resulting address back into
-the project. After that, every `LLM_BACKEND=genlayer` evaluation calls this
-on-chain contract instead of the local stub.
+| Method | Description |
+|--------|-------------|
+| `evaluate_application` | Full ATS + recruiter scoring (5 weighted dimensions) |
+| `analyse_skills_gap` | Required vs candidate skills + upskilling roadmap |
+| `generate_interview_prep` | Behavioral, technical, situational, culture-fit Qs |
+| `estimate_salary` | Range + negotiation tips for target location |
+| `assess_portfolio` | Live portfolio fetch + quality scoring |
+| `analyse_career_trajectory` | Seniority, progression, velocity, growth potential |
+| `analyse_cover_letter` | Tone, personalisation, storytelling, CTA strength |
+| `analyse_job_posting` | Company stage, tech stack, red flags, culture signals |
+| `suggest_ats_keywords` | Priority keyword injection map per CV section |
+| `rewrite_positioning` | AI-drafted professional summary (tone-controlled) |
+| `advise_application_strategy` | Stage-aware next-step playbook |
+| `run_full_suite` | All core analyses in a single transaction with caching |
 
-### 1. Open GenLayer Studio
+## Redeploy to StudioNet
 
-Visit **https://studio.genlayer.com**
+If you need to redeploy (e.g. after contract changes):
 
-If you have not connected a wallet/account yet, follow the Studio onboarding.
-Make sure the network selector shows **StudioNet**.
+1. Open **https://studio.genlayer.com** and connect your wallet (StudioNet).
+2. Create a new project and paste the contents of `cvpilot_contract.py`.
+3. Click **Compile** — no errors expected.
+4. Click **Deploy** — constructor takes no arguments.
+5. Copy the new contract address.
+6. Update `GENLAYER_CONTRACT_ADDRESS` in:
+   - `.env`
+   - `.env.production.example`
+   - `frontend/.env.production.example`
+   - `docs/runbooks/deploy.md`
+   - This README.
+7. Update Fly.io secrets:
+   ```bash
+   fly secrets set -a cvpilot-api GENLAYER_CONTRACT_ADDRESS="0x..."
+   fly secrets set -a cvpilot-worker GENLAYER_CONTRACT_ADDRESS="0x..."
+   ```
+8. Redeploy backend:
+   ```bash
+   fly deploy -c fly.api.toml
+   fly deploy -c fly.worker.toml
+   ```
+9. Redeploy frontend: push to `main` (Vercel auto-deploys).
 
-### 2. Paste the contract
+## Design principles
 
-1. In Studio, open a new contract / project.
-2. Copy the entire contents of `cvpilot_contract.py`.
-3. Paste it into the Studio code editor.
-
-### 3. Compile
-
-Click **Compile**. You should see no errors. The Studio tooling will detect
-the `@gl.contract` class `CVPilotEvaluator`.
-
-### 4. Deploy
-
-1. Click **Deploy**.
-2. Constructor takes no arguments — leave fields blank.
-3. Confirm the transaction.
-4. Wait for finalization (a few seconds on StudioNet).
-
-### 5. Copy the contract address
-
-Studio will display the deployed contract address (`0x...`).
-**Copy this address.** It is what we will paste into `.env`:
-GENLAYER_CONTRACT_ADDRESS=0xYourDeployedAddressHere
-
-### 6. Smoke-test from Studio
-In the Studio UI you can call methods directly:
-- `contract_version()` should return `"0.1.0"`.
-- `evaluation_count()` should return `0`.
-- `has_evaluation("0x0000...")` should return `false`.
-You don't need to call `evaluate_application` from Studio — our backend will
-drive that call in Phase 5B Part 2.
-### 7. Hand the address back
-Paste the contract address into this chat. I will:
-1. Update `.env` (`GENLAYER_CONTRACT_ADDRESS=...`).
-2. Implement `services/llm/genlayer.py` to call this contract.
-3. Add a smoke test that flips `LLM_BACKEND=genlayer` and runs a real
-   on-chain evaluation.
-## Why this design
-- **Idempotency** — same inputs hash to the same key, so re-evaluating costs
-  no extra LLM consensus calls and returns the canonical stored verdict.
-- **Schema stability** — the contract NORMALIZES the LLM output before
-  storage, so backend code never sees malformed JSON.
-- **Validator consensus** — `gl.eq_principle.prompt_comparative` enforces
-  that multiple validators must agree (within tolerance) on the scoring
-  before it lands on-chain. That is CVPilot's trust layer.
-- **On-chain auditability** — every evaluation lives in `evaluations`
-  keyed by `sha256(cv || cover_letter || job || title || url)`. Anyone
-  can replay the lookup and verify the verdict.
+- **Idempotency** — same inputs hash to the same cache key; re-evaluating
+  returns the stored verdict with zero extra LLM consensus calls.
+- **Schema safety** — the contract normalises LLM output before storage;
+  the backend never sees malformed JSON.
+- **Validator consensus** — every write method uses `gl.eq_principle.prompt_comparative`
+  so multiple validators must agree (within tolerance) before state is written.
+  That is CVPilot's trust and verifiability layer.
+- **On-chain auditability** — results are keyed by `content_hash` (derived
+  from the application inputs). Anyone can replay the lookup and verify the verdict.
+- **Schema compatibility** — no `from __future__ import annotations`; all
+  `@gl.public.*` parameters use primitive types that the GenLayer schema
+  generator can resolve at class-definition time.

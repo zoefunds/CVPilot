@@ -5,7 +5,7 @@ Leave LLM_BACKEND=stub for now; the user flips it manually for the smoke test.
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")
-ADDR = "0xE8e023CD4a744d582Df204DD11aB30bc1B702855"
+ADDR = "0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac"
 ENV = ROOT / ".env"
 
 lines = ENV.read_text(encoding="utf-8").splitlines()

@@ -24,7 +24,7 @@ transparent, verifiable scoring and actionable career recommendations.
 | Contract | `CVPilotEvaluator` |
 | Version | `1.0.1` |
 | Network | GenLayer StudioNet |
-| Address | `0xE8e023CD4a744d582Df204DD11aB30bc1B702855` |
+| Address | `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` |
 | Explorer | https://studio.genlayer.com/explorer |
 | Source | [`contracts/cvpilot/cvpilot_contract.py`](contracts/cvpilot/cvpilot_contract.py) |
 
@@ -114,7 +114,7 @@ Copy `.env.example` to `.env` and fill in the values.
 | `APP_SECRET_KEY` | 64-char random secret (`openssl rand -base64 48`) |
 | `DATABASE_URL` | PostgreSQL DSN (`postgresql+psycopg://...`) |
 | `REDIS_URL` | Redis DSN |
-| `GENLAYER_CONTRACT_ADDRESS` | `0xE8e023CD4a744d582Df204DD11aB30bc1B702855` |
+| `GENLAYER_CONTRACT_ADDRESS` | `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` |
 | `GENLAYER_STUDIONET_RPC` | `https://studio.genlayer.com/api` |
 | `GENLAYER_ACCOUNT_PRIVATE_KEY` | Funded StudioNet wallet private key |
 | `APP_FRONTEND_ORIGIN` | CORS origin (`https://cvpilot-theta.vercel.app`) |
@@ -128,7 +128,7 @@ Copy `frontend/.env.production.example` and set as Vercel environment variables.
 | Variable | Value |
 |----------|-------|
 | `NEXT_PUBLIC_API_BASE_URL` | `/api` (proxied via Vercel rewrites) |
-| `NEXT_PUBLIC_GENLAYER_CONTRACT_ADDRESS` | `0xE8e023CD4a744d582Df204DD11aB30bc1B702855` |
+| `NEXT_PUBLIC_GENLAYER_CONTRACT_ADDRESS` | `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` |
 | `NEXT_PUBLIC_GENLAYER_EXPLORER` | `https://studio.genlayer.com/explorer` |
 | `NEXT_PUBLIC_SITE_ORIGIN` | `https://cvpilot-theta.vercel.app` |
 
@@ -169,10 +169,10 @@ cd frontend && npm install && npm run dev
 ```bash
 # Update contract address secret on both apps
 fly secrets set -a cvpilot-api \
-  GENLAYER_CONTRACT_ADDRESS="0xE8e023CD4a744d582Df204DD11aB30bc1B702855"
+  GENLAYER_CONTRACT_ADDRESS="0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac"
 
 fly secrets set -a cvpilot-worker \
-  GENLAYER_CONTRACT_ADDRESS="0xE8e023CD4a744d582Df204DD11aB30bc1B702855"
+  GENLAYER_CONTRACT_ADDRESS="0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac"
 
 # Deploy
 fly deploy -c fly.api.toml
@@ -183,7 +183,7 @@ fly deploy -c fly.worker.toml
 
 Push to `main` — Vercel auto-deploys on every push.
 Ensure `NEXT_PUBLIC_GENLAYER_CONTRACT_ADDRESS` is set to
-`0xE8e023CD4a744d582Df204DD11aB30bc1B702855` in the Vercel project settings.
+`0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac` in the Vercel project settings.
 
 Full deploy runbook: [`docs/runbooks/deploy.md`](docs/runbooks/deploy.md)
 
@@ -195,5 +195,5 @@ Every evaluation result is anchored on-chain. The public
 `/verify/<content_hash>` route shows the full result, contract address,
 and transaction hash — verifiable by anyone without an account.
 
-Contract address: `0xE8e023CD4a744d582Df204DD11aB30bc1B702855`
+Contract address: `0xDb65251DDB51Fcb20dfA9bbaE17D80efa4cd8bac`
 Explorer: https://studio.genlayer.com/explorer

@@ -495,7 +495,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return a valid JSON string matching the schema. Minor wording differences are acceptable.",
+            "Return a valid JSON string matching the schema. Minor wording differences are acceptable.",
         )
 
         self.evaluations[content_hash] = result
@@ -562,7 +562,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the main missing skills and roadmap directionally similar.",
+            "Return valid JSON. Keep the main missing skills and roadmap directionally similar.",
         )
         self.skills_analyses[content_hash] = result
         self.total_skills_analyses = self.total_skills_analyses + u256(1)
@@ -627,7 +627,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the important question themes and talking points relevant.",
+            "Return valid JSON. Keep the important question themes and talking points relevant.",
         )
         self.interview_preps[content_hash] = result
         self.total_interview_preps = self.total_interview_preps + u256(1)
@@ -687,7 +687,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the salary estimate and leverage points broadly sensible.",
+            "Return valid JSON. Keep the salary estimate and leverage points broadly sensible.",
         )
         self.salary_estimates[content_hash] = result
         self.total_salary_estimates = self.total_salary_estimates + u256(1)
@@ -723,7 +723,7 @@ class CVPilotEvaluator(gl.Contract):
 
             portfolio_content = gl.eq_principle.prompt_comparative(
                 _fetch,
-                criteria="Return the fetched page text as-is, or a readable error string if fetching fails.",
+                "Return the fetched page text as-is, or a readable error string if fetching fails.",
             )
 
         prompt = (
@@ -764,7 +764,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the portfolio assessment generally aligned with the evidence.",
+            "Return valid JSON. Keep the portfolio assessment generally aligned with the evidence.",
         )
         self.portfolio_assessments[content_hash] = result
         self.total_portfolio_assessments = self.total_portfolio_assessments + u256(1)
@@ -824,7 +824,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the career trajectory assessment broadly aligned.",
+            "Return valid JSON. Keep the career trajectory assessment broadly aligned.",
         )
         self.career_analyses[content_hash] = result
         self.total_career_analyses = self.total_career_analyses + u256(1)
@@ -888,7 +888,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the cover letter themes and tone assessment broadly aligned.",
+            "Return valid JSON. Keep the cover letter themes and tone assessment broadly aligned.",
         )
         self.cover_letter_analyses[content_hash] = result
         self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
@@ -925,7 +925,7 @@ class CVPilotEvaluator(gl.Contract):
 
             web_content = gl.eq_principle.prompt_comparative(
                 _fetch,
-                criteria="Return the fetched page text as-is, or a readable error string if fetching fails.",
+                "Return the fetched page text as-is, or a readable error string if fetching fails.",
             )
 
         prompt = (
@@ -965,7 +965,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the job intelligence broadly aligned with the description.",
+            "Return valid JSON. Keep the job intelligence broadly aligned with the description.",
         )
         self.job_intel_cache[job_hash] = result
         self.total_job_intel = self.total_job_intel + u256(1)
@@ -1021,7 +1021,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the ATS keyword recommendations broadly similar.",
+            "Return valid JSON. Keep the ATS keyword recommendations broadly similar.",
         )
         self.evaluations[store_key] = result
         return result
@@ -1073,7 +1073,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return the summary text with the same core positioning and company focus.",
+            "Return the summary text with the same core positioning and company focus.",
         )
         self.evaluations[store_key] = result
         return result
@@ -1140,7 +1140,7 @@ class CVPilotEvaluator(gl.Contract):
 
         result = gl.eq_principle.prompt_comparative(
             _run,
-            criteria="Return valid JSON. Keep the strategy recommendations broadly aligned.",
+            "Return valid JSON. Keep the strategy recommendations broadly aligned.",
         )
         self.evaluations[store_key] = result
         return result
@@ -1203,7 +1203,7 @@ class CVPilotEvaluator(gl.Contract):
 
             eval_result = gl.eq_principle.prompt_comparative(
                 _ev,
-                criteria="Return valid JSON. Keep the overall evaluation broadly aligned with the input.",
+                "Return valid JSON. Keep the overall evaluation broadly aligned with the input.",
             )
             self.evaluations[content_hash] = eval_result
             self.total_evaluated = self.total_evaluated + u256(1)
@@ -1235,7 +1235,7 @@ class CVPilotEvaluator(gl.Contract):
 
             skills_result = gl.eq_principle.prompt_comparative(
                 _sk,
-                criteria="Return valid JSON. Keep the skills gap analysis broadly aligned.",
+                "Return valid JSON. Keep the skills gap analysis broadly aligned.",
             )
             self.skills_analyses[content_hash] = skills_result
             self.total_skills_analyses = self.total_skills_analyses + u256(1)
@@ -1264,7 +1264,7 @@ class CVPilotEvaluator(gl.Contract):
 
             career_result = gl.eq_principle.prompt_comparative(
                 _ca,
-                criteria="Return valid JSON. Keep the career trajectory analysis broadly aligned.",
+                "Return valid JSON. Keep the career trajectory analysis broadly aligned.",
             )
             self.career_analyses[content_hash] = career_result
             self.total_career_analyses = self.total_career_analyses + u256(1)
@@ -1292,7 +1292,7 @@ class CVPilotEvaluator(gl.Contract):
 
             cl_result = gl.eq_principle.prompt_comparative(
                 _cl,
-                criteria="Return valid JSON. Keep the cover letter assessment broadly aligned.",
+                "Return valid JSON. Keep the cover letter assessment broadly aligned.",
             )
             self.cover_letter_analyses[content_hash] = cl_result
             self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
@@ -1319,7 +1319,7 @@ class CVPilotEvaluator(gl.Contract):
 
             salary_result = gl.eq_principle.prompt_comparative(
                 _sal,
-                criteria="Return valid JSON. Keep the salary estimate broadly aligned.",
+                "Return valid JSON. Keep the salary estimate broadly aligned.",
             )
             self.salary_estimates[content_hash] = salary_result
             self.total_salary_estimates = self.total_salary_estimates + u256(1)

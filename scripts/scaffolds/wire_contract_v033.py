@@ -5,7 +5,7 @@ into the repo as the canonical record.
 from pathlib import Path
 
 ROOT = Path("/Users/macbook/CVPilot")
-ADDR = "0xEEE67a3D702B15E417010317430938B0626a7641"
+ADDR = "0xDc1A7934F298C2162dFC57709fBd1AeD6259CB2c"
 
 # 1) Update .env
 env = ROOT / ".env"
@@ -29,7 +29,7 @@ target.write_text(
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 #
 # CVPilotEvaluator v0.3.3
-# DEPLOYED on StudioNet at: 0xEEE67a3D702B15E417010317430938B0626a7641
+# DEPLOYED on StudioNet at: 0xDc1A7934F298C2162dFC57709fBd1AeD6259CB2c
 #
 # Key working pattern:
 #   * Storage declared via class-level type annotations

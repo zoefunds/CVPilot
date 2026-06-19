@@ -15,7 +15,7 @@ consensus to finalize the result.
 | Contract | `CVPilotEvaluator` |
 | Version | `1.0.5` |
 | Network | GenLayer StudioNet |
-| Address | `0xcB5C521f2Ccc2496F40218Ba344F3AB7eE8C6C70` |
+| Address | `0x51D4DC0eF0759721216b829a844f6c80325ED15b` |
 
 ## What it does
 

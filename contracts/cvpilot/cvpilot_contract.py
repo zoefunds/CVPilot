@@ -22,7 +22,7 @@ import re
 from genlayer import *
 
 _CONTRACT_VERSION = "2.1.0"
-_CONTRACT_ADDRESS = "0xcB5C521f2Ccc2496F40218Ba344F3AB7eE8C6C70"
+_CONTRACT_ADDRESS = "0x51D4DC0eF0759721216b829a844f6c80325ED15b"
 
 # ── Scoring weights (must sum to 100) ────────────────────────────────────────
 _W_CV       = 30

@@ -717,7 +717,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
 
         self.evaluations[content_hash] = result
@@ -783,7 +784,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.skills_analyses[content_hash] = result
         self.total_skills_analyses = self.total_skills_analyses + u256(1)
@@ -847,7 +849,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.interview_preps[content_hash] = result
         self.total_interview_preps = self.total_interview_preps + u256(1)
@@ -906,7 +909,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.salary_estimates[content_hash] = result
         self.total_salary_estimates = self.total_salary_estimates + u256(1)
@@ -941,7 +945,8 @@ class CVPilotEvaluator(gl.Contract):
                     return "[fetch error: " + str(exc) + "]"
 
             portfolio_content = gl.eq_principle.prompt_non_comparative(
-            _fetch,
+            task=_fetch,
+            criteria=_ALWAYS_EQUIV,
         )
 
         prompt = (
@@ -981,7 +986,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.portfolio_assessments[content_hash] = result
         self.total_portfolio_assessments = self.total_portfolio_assessments + u256(1)
@@ -1040,7 +1046,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.career_analyses[content_hash] = result
         self.total_career_analyses = self.total_career_analyses + u256(1)
@@ -1103,7 +1110,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.cover_letter_analyses[content_hash] = result
         self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
@@ -1139,7 +1147,8 @@ class CVPilotEvaluator(gl.Contract):
                     return "[fetch error: " + str(exc) + "]"
 
             web_content = gl.eq_principle.prompt_non_comparative(
-            _fetch,
+            task=_fetch,
+            criteria=_ALWAYS_EQUIV,
         )
 
         prompt = (
@@ -1178,7 +1187,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.job_intel_cache[job_hash] = result
         self.total_job_intel = self.total_job_intel + u256(1)
@@ -1233,7 +1243,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.evaluations[store_key] = result
         return result
@@ -1284,7 +1295,8 @@ class CVPilotEvaluator(gl.Contract):
             return str(raw).strip()
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.evaluations[store_key] = result
         return result
@@ -1350,7 +1362,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.evaluations[store_key] = result
         return result
@@ -1412,7 +1425,8 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_e), sort_keys=True)
 
             eval_result = gl.eq_principle.prompt_non_comparative(
-            _ev,
+            task=_ev,
+            criteria=_ALWAYS_EQUIV,
         )
             self.evaluations[content_hash] = eval_result
             self.total_evaluated = self.total_evaluated + u256(1)
@@ -1443,7 +1457,8 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_sk), sort_keys=True)
 
             skills_result = gl.eq_principle.prompt_non_comparative(
-            _sk,
+            task=_sk,
+            criteria=_ALWAYS_EQUIV,
         )
             self.skills_analyses[content_hash] = skills_result
             self.total_skills_analyses = self.total_skills_analyses + u256(1)
@@ -1471,7 +1486,8 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_ca), sort_keys=True)
 
             career_result = gl.eq_principle.prompt_non_comparative(
-            _ca,
+            task=_ca,
+            criteria=_ALWAYS_EQUIV,
         )
             self.career_analyses[content_hash] = career_result
             self.total_career_analyses = self.total_career_analyses + u256(1)
@@ -1498,7 +1514,8 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_cl), sort_keys=True)
 
             cl_result = gl.eq_principle.prompt_non_comparative(
-            _cl,
+            task=_cl,
+            criteria=_ALWAYS_EQUIV,
         )
             self.cover_letter_analyses[content_hash] = cl_result
             self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
@@ -1524,7 +1541,8 @@ class CVPilotEvaluator(gl.Contract):
                 return json.dumps(_parse(str(raw), _fb_sal), sort_keys=True)
 
             salary_result = gl.eq_principle.prompt_non_comparative(
-            _sal,
+            task=_sal,
+            criteria=_ALWAYS_EQUIV,
         )
             self.salary_estimates[content_hash] = salary_result
             self.total_salary_estimates = self.total_salary_estimates + u256(1)
@@ -1593,7 +1611,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.bias_analyses[content_hash] = result
         self.total_bias_analyses = self.total_bias_analyses + u256(1)
@@ -1653,7 +1672,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.linkedin_cache[content_hash] = result
         self.total_linkedin_analyses = self.total_linkedin_analyses + u256(1)
@@ -1715,7 +1735,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.reputation_store[linkedin_url] = result
         self.total_reputation_scores = self.total_reputation_scores + u256(1) if hasattr(self, 'total_reputation_scores') else u256(1)
@@ -1777,7 +1798,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.outreach_cache[content_hash] = result
         self.total_outreach_drafts = self.total_outreach_drafts + u256(1)
@@ -1840,7 +1862,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.readiness_cache[content_hash] = result
         self.total_readiness_gates = self.total_readiness_gates + u256(1)
@@ -1913,7 +1936,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.job_rank_cache[rank_hash] = result
         self.total_job_rankings = self.total_job_rankings + u256(1)
@@ -1967,7 +1991,8 @@ class CVPilotEvaluator(gl.Contract):
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
         result = gl.eq_principle.prompt_non_comparative(
-            _run,
+            task=_run,
+            criteria=_ALWAYS_EQUIV,
         )
         self.weak_bullet_cache[content_hash] = result
         self.total_weak_bullet_rewrites = self.total_weak_bullet_rewrites + u256(1)
@@ -2016,7 +2041,8 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_bias_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_bias), sort_keys=True)
             bias_result = gl.eq_principle.prompt_non_comparative(
-            _bias,
+            task=_bias,
+            criteria=_ALWAYS_EQUIV,
         )
             self.bias_analyses[bias_key] = bias_result
             self.total_bias_analyses = self.total_bias_analyses + u256(1)
@@ -2041,7 +2067,8 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_wb_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_wb), sort_keys=True)
             wb_result = gl.eq_principle.prompt_non_comparative(
-            _wb,
+            task=_wb,
+            criteria=_ALWAYS_EQUIV,
         )
             self.weak_bullet_cache[wb_key] = wb_result
             self.total_weak_bullet_rewrites = self.total_weak_bullet_rewrites + u256(1)
@@ -2067,7 +2094,8 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_li_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_li), sort_keys=True)
             li_result = gl.eq_principle.prompt_non_comparative(
-            _li,
+            task=_li,
+            criteria=_ALWAYS_EQUIV,
         )
             self.linkedin_cache[li_key] = li_result
             self.total_linkedin_analyses = self.total_linkedin_analyses + u256(1)
@@ -2094,7 +2122,8 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_rg_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_rg), sort_keys=True)
             rg_result = gl.eq_principle.prompt_non_comparative(
-            _rg,
+            task=_rg,
+            criteria=_ALWAYS_EQUIV,
         )
             self.readiness_cache[rg_key] = rg_result
             self.total_readiness_gates = self.total_readiness_gates + u256(1)
@@ -2120,7 +2149,8 @@ class CVPilotEvaluator(gl.Contract):
                 raw = gl.nondet.exec_prompt(_oa_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_oa), sort_keys=True)
             oa_result = gl.eq_principle.prompt_non_comparative(
-            _oa,
+            task=_oa,
+            criteria=_ALWAYS_EQUIV,
         )
             self.outreach_cache[oa_key] = oa_result
             self.total_outreach_drafts = self.total_outreach_drafts + u256(1)

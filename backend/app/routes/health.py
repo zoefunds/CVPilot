@@ -56,16 +56,20 @@ def healthz() -> dict:
 
 @router.get("/readyz")
 def readyz() -> JSONResponse:
+    db_ok = ping_db()
+    redis_ok = _ping_redis()
     checks = {
-        "database": ping_db(),
-        "redis": _ping_redis(),
+        "database": db_ok,
+        "redis": redis_ok,
         "genlayer": _ping_genlayer_contract(),
     }
-    all_ok = all(checks.values())
-    code = status.HTTP_200_OK if all_ok else status.HTTP_503_SERVICE_UNAVAILABLE
+    # Only DB and Redis gate readiness; GenLayer contract is informational
+    # (contract may be warming up on StudioNet after a new deployment)
+    core_ok = db_ok and redis_ok
+    code = status.HTTP_200_OK if core_ok else status.HTTP_503_SERVICE_UNAVAILABLE
     return JSONResponse(
         status_code=code,
-        content={"status": "ok" if all_ok else "degraded", "checks": checks},
+        content={"status": "ok" if all(checks.values()) else "degraded", "checks": checks},
     )
 
 

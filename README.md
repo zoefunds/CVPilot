@@ -32,7 +32,7 @@ The on-chain GenLayer contract is the trust layer behind the platform.
 
 The contract address currently wired into the app is:
 
-`0xF764D9797A6685E5d14160A8932307FA08cbbc67`
+`0x1df327FcA00d56dabBa11F8de81F71F2679A29aa`
 
 ## How the system fits together
 
@@ -117,10 +117,10 @@ cd frontend && npm install && npm run dev
 ```bash
 # Update contract address secret on both apps
 fly secrets set -a cvpilot-api \
-  GENLAYER_CONTRACT_ADDRESS="0xF764D9797A6685E5d14160A8932307FA08cbbc67"
+  GENLAYER_CONTRACT_ADDRESS="0x1df327FcA00d56dabBa11F8de81F71F2679A29aa"
 
 fly secrets set -a cvpilot-worker \
-  GENLAYER_CONTRACT_ADDRESS="0xF764D9797A6685E5d14160A8932307FA08cbbc67"
+  GENLAYER_CONTRACT_ADDRESS="0x1df327FcA00d56dabBa11F8de81F71F2679A29aa"
 
 # Deploy API and worker
 fly deploy -c fly.api.toml

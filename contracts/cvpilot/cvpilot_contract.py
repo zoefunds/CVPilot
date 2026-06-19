@@ -21,7 +21,8 @@ import re
 
 from genlayer import *
 
-_CONTRACT_VERSION = "1.0.5"
+_CONTRACT_VERSION = "2.0.0"
+_CONTRACT_ADDRESS = "0xcB5C521f2Ccc2496F40218Ba344F3AB7eE8C6C70"
 
 # ── Scoring weights (must sum to 100) ────────────────────────────────────────
 _W_CV       = 30
@@ -183,6 +184,103 @@ _STRATEGY_SCHEMA = """{
   "summary": ""
 }"""
 
+_BIAS_SCHEMA = """{
+  "bias_score": 0,
+  "detected_biases": [],
+  "exclusionary_language": [],
+  "inclusive_signals": [],
+  "gendered_terms": [],
+  "age_related_signals": [],
+  "accessibility_gaps": [],
+  "overqualification_signals": [],
+  "culture_fit_gatekeeping": [],
+  "recommendations": [],
+  "overall_verdict": "",
+  "summary": ""
+}"""
+
+_LINKEDIN_SCHEMA = """{
+  "headline_options": [],
+  "about_section": "",
+  "key_skills_to_add": [],
+  "featured_project_ideas": [],
+  "network_growth_tips": [],
+  "post_content_angles": [],
+  "profile_strength_score": 0,
+  "keyword_optimization_tips": [],
+  "connection_request_template": "",
+  "summary": ""
+}"""
+
+_REPUTATION_SCHEMA = """{
+  "reputation_score": 0,
+  "applications_analyzed": 0,
+  "average_overall_score": 0,
+  "best_fit_role_types": [],
+  "improvement_trend": "",
+  "consistency_score": 0,
+  "top_strengths": [],
+  "persistent_gaps": [],
+  "recommended_target_roles": [],
+  "market_positioning": "",
+  "summary": ""
+}"""
+
+_OUTREACH_SCHEMA = """{
+  "subject_lines": [],
+  "email_body": "",
+  "linkedin_message": "",
+  "follow_up_template": "",
+  "personalization_hooks": [],
+  "value_propositions": [],
+  "call_to_action": "",
+  "tone": "",
+  "optimal_send_time_tip": "",
+  "summary": ""
+}"""
+
+_READINESS_SCHEMA = """{
+  "go_no_go": "",
+  "readiness_score": 0,
+  "confidence": "",
+  "top_blockers": [],
+  "quick_wins": [],
+  "estimated_prep_days": 0,
+  "minimum_score_to_apply": 0,
+  "current_score": 0,
+  "submission_risk_level": "",
+  "verdict_rationale": "",
+  "summary": ""
+}"""
+
+_JOB_RANK_SCHEMA = """{
+  "winner": "",
+  "job_a_fit_score": 0,
+  "job_b_fit_score": 0,
+  "comparison_dimensions": {
+    "skill_match": {"job_a": 0, "job_b": 0},
+    "career_growth": {"job_a": "", "job_b": ""},
+    "ats_friendliness": {"job_a": 0, "job_b": 0},
+    "culture_fit": {"job_a": "", "job_b": ""}
+  },
+  "recommendation": "",
+  "trade_offs": [],
+  "growth_potential_comparison": "",
+  "salary_potential_comparison": "",
+  "apply_order": [],
+  "summary": ""
+}"""
+
+_WEAK_BULLET_SCHEMA = """{
+  "weak_bullets": [],
+  "rewritten_bullets": [],
+  "impact_improvement_score": 0,
+  "quantification_opportunities": [],
+  "action_verb_upgrades": [],
+  "achievement_framing_tips": [],
+  "summary": ""
+}"""
+
 
 # ════════════════════════════════════════════════════════════════════════════
 #  Contract
@@ -200,6 +298,17 @@ class CVPilotEvaluator(gl.Contract):
     cover_letter_analyses: TreeMap[str, str]
     job_intel_cache:       TreeMap[str, str]
 
+    # ── Extended module caches ────────────────────────────────────────────
+    bias_analyses:    TreeMap[str, str]
+    linkedin_cache:   TreeMap[str, str]
+    outreach_cache:   TreeMap[str, str]
+    readiness_cache:  TreeMap[str, str]
+    job_rank_cache:   TreeMap[str, str]
+    weak_bullet_cache:TreeMap[str, str]
+
+    # ── Candidate reputation (linkedin_url → JSON) ────────────────────────
+    reputation_store: TreeMap[str, str]
+
     # ── Candidate / job indexes (url → comma-joined hash list) ───────────
     candidate_history: TreeMap[str, str]
     job_history:       TreeMap[str, str]
@@ -213,6 +322,12 @@ class CVPilotEvaluator(gl.Contract):
     total_career_analyses:       u256
     total_cover_letter_analyses: u256
     total_job_intel:             u256
+    total_bias_analyses:         u256
+    total_linkedin_analyses:     u256
+    total_outreach_drafts:       u256
+    total_readiness_gates:       u256
+    total_job_rankings:          u256
+    total_weak_bullet_rewrites:  u256
 
     # ── Admin ─────────────────────────────────────────────────────────────
     owner:          str
@@ -230,6 +345,12 @@ class CVPilotEvaluator(gl.Contract):
         self.total_career_analyses       = u256(0)
         self.total_cover_letter_analyses = u256(0)
         self.total_job_intel             = u256(0)
+        self.total_bias_analyses         = u256(0)
+        self.total_linkedin_analyses     = u256(0)
+        self.total_outreach_drafts       = u256(0)
+        self.total_readiness_gates       = u256(0)
+        self.total_job_rankings          = u256(0)
+        self.total_weak_bullet_rewrites  = u256(0)
         self.owner         = gl.message.sender_address.as_hex
         self.paused        = False
         self.paused_reason = ""
@@ -350,7 +471,37 @@ class CVPilotEvaluator(gl.Contract):
             "career_analyses":       int(self.total_career_analyses),
             "cover_letter_analyses": int(self.total_cover_letter_analyses),
             "job_intel":             int(self.total_job_intel),
+            "bias_analyses":         int(self.total_bias_analyses),
+            "linkedin_analyses":     int(self.total_linkedin_analyses),
+            "outreach_drafts":       int(self.total_outreach_drafts),
+            "readiness_gates":       int(self.total_readiness_gates),
+            "job_rankings":          int(self.total_job_rankings),
+            "weak_bullet_rewrites":  int(self.total_weak_bullet_rewrites),
         })
+
+    @gl.public.view
+    def bias_count(self) -> u256:
+        return self.total_bias_analyses
+
+    @gl.public.view
+    def linkedin_count(self) -> u256:
+        return self.total_linkedin_analyses
+
+    @gl.public.view
+    def outreach_count(self) -> u256:
+        return self.total_outreach_drafts
+
+    @gl.public.view
+    def readiness_count(self) -> u256:
+        return self.total_readiness_gates
+
+    @gl.public.view
+    def job_ranking_count(self) -> u256:
+        return self.total_job_rankings
+
+    @gl.public.view
+    def weak_bullet_count(self) -> u256:
+        return self.total_weak_bullet_rewrites
 
     # ════════════════════════════════════════════════════════════════════
     #  Views — cache lookups
@@ -438,7 +589,66 @@ class CVPilotEvaluator(gl.Contract):
             "portfolio_assessment": _parse(self.portfolio_assessments.get(content_hash, "{}"), {}),
             "career_analysis":      _parse(self.career_analyses.get(content_hash, "{}"), {}),
             "cover_letter_analysis":_parse(self.cover_letter_analyses.get(content_hash, "{}"), {}),
+            "bias_analysis":        _parse(self.bias_analyses.get(content_hash, "{}"), {}),
+            "readiness_gate":       _parse(self.readiness_cache.get(content_hash, "{}"), {}),
+            "weak_bullet_rewrite":  _parse(self.weak_bullet_cache.get(content_hash, "{}"), {}),
         })
+
+    @gl.public.view
+    def has_bias_analysis(self, content_hash: str) -> bool:
+        return self.bias_analyses.get(content_hash, None) is not None
+
+    @gl.public.view
+    def get_bias_analysis(self, content_hash: str) -> str:
+        return self.bias_analyses.get(content_hash, "")
+
+    @gl.public.view
+    def has_linkedin_analysis(self, content_hash: str) -> bool:
+        return self.linkedin_cache.get(content_hash, None) is not None
+
+    @gl.public.view
+    def get_linkedin_analysis(self, content_hash: str) -> str:
+        return self.linkedin_cache.get(content_hash, "")
+
+    @gl.public.view
+    def has_outreach_draft(self, content_hash: str) -> bool:
+        return self.outreach_cache.get(content_hash, None) is not None
+
+    @gl.public.view
+    def get_outreach_draft(self, content_hash: str) -> str:
+        return self.outreach_cache.get(content_hash, "")
+
+    @gl.public.view
+    def has_readiness_gate(self, content_hash: str) -> bool:
+        return self.readiness_cache.get(content_hash, None) is not None
+
+    @gl.public.view
+    def get_readiness_gate(self, content_hash: str) -> str:
+        return self.readiness_cache.get(content_hash, "")
+
+    @gl.public.view
+    def has_reputation(self, linkedin_url: str) -> bool:
+        return self.reputation_store.get(linkedin_url, None) is not None
+
+    @gl.public.view
+    def get_reputation(self, linkedin_url: str) -> str:
+        return self.reputation_store.get(linkedin_url, "")
+
+    @gl.public.view
+    def has_job_ranking(self, rank_hash: str) -> bool:
+        return self.job_rank_cache.get(rank_hash, None) is not None
+
+    @gl.public.view
+    def get_job_ranking(self, rank_hash: str) -> str:
+        return self.job_rank_cache.get(rank_hash, "")
+
+    @gl.public.view
+    def has_weak_bullet_rewrite(self, content_hash: str) -> bool:
+        return self.weak_bullet_cache.get(content_hash, None) is not None
+
+    @gl.public.view
+    def get_weak_bullet_rewrite(self, content_hash: str) -> str:
+        return self.weak_bullet_cache.get(content_hash, "")
 
     # ════════════════════════════════════════════════════════════════════
     #  1. Full Application Evaluation
@@ -1341,4 +1551,597 @@ class CVPilotEvaluator(gl.Contract):
             "career_analysis":       _parse(career_result, {}),
             "cover_letter_analysis": _parse(cl_result, {}),
             "salary_estimate":       _parse(salary_result, {}),
+        }, sort_keys=True)
+
+    # ════════════════════════════════════════════════════════════════════
+    # 13. Job Posting Bias Detection
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def detect_job_bias(
+        self,
+        content_hash: str,
+        job_text: str,
+        job_title: str,
+        company_name: str,
+    ) -> str:
+        self._check_live()
+
+        cached = self.bias_analyses.get(content_hash, None)
+        if cached is not None:
+            return cached
+
+        prompt = (
+            "You are a diversity, equity, and inclusion (DEI) specialist and employment lawyer.\n"
+            "Analyse this job posting for language that may exclude qualified candidates "
+            "based on age, gender, disability, ethnicity, or socioeconomic background.\n\n"
+            "Return ONLY valid JSON (no markdown) matching this schema:\n"
+            + _BIAS_SCHEMA + "\n\n"
+            "Rules:\n"
+            "- bias_score: 0 (no bias) to 100 (highly exclusionary).\n"
+            "- detected_biases: list each distinct bias type found.\n"
+            "- exclusionary_language: exact phrases that may exclude candidates.\n"
+            "- inclusive_signals: positive inclusive language found.\n"
+            "- gendered_terms: gendered words/phrases (e.g. 'rockstar', 'ninja').\n"
+            "- age_related_signals: phrases implying age preference.\n"
+            "- accessibility_gaps: missing accommodations or physical demands language.\n"
+            "- overqualification_signals: phrases that gate overqualified candidates.\n"
+            "- culture_fit_gatekeeping: vague culture-fit language used as a screen.\n"
+            "- recommendations: 5 specific rewrites to make the posting more inclusive.\n"
+            "- overall_verdict: 'inclusive' / 'moderate_bias' / 'high_bias'.\n\n"
+            "COMPANY: " + company_name + "\n"
+            "JOB TITLE: " + job_title + "\n\n"
+            "JOB DESCRIPTION:\n" + job_text
+        )
+
+        _fb = {
+            "bias_score": 0, "detected_biases": [],
+            "exclusionary_language": [], "inclusive_signals": [],
+            "gendered_terms": [], "age_related_signals": [],
+            "accessibility_gaps": [], "overqualification_signals": [],
+            "culture_fit_gatekeeping": [], "recommendations": [],
+            "overall_verdict": "inclusive", "summary": "",
+        }
+
+        def _run():
+            raw = gl.nondet.exec_prompt(prompt)
+            return json.dumps(_parse(str(raw), _fb), sort_keys=True)
+
+        result = gl.eq_principle.prompt_comparative(
+            _run,
+            _SOFT_JSON_CRITERIA,
+        )
+        self.bias_analyses[content_hash] = result
+        self.total_bias_analyses = self.total_bias_analyses + u256(1)
+        return result
+
+    # ════════════════════════════════════════════════════════════════════
+    # 14. LinkedIn Profile Optimizer
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def optimise_linkedin(
+        self,
+        content_hash: str,
+        cv_text: str,
+        job_title: str,
+        target_industry: str,
+        seniority_level: str,
+    ) -> str:
+        self._check_live()
+
+        cached = self.linkedin_cache.get(content_hash, None)
+        if cached is not None:
+            return cached
+
+        prompt = (
+            "You are a LinkedIn personal branding expert and growth strategist.\n"
+            "Create a complete LinkedIn optimisation plan for a candidate targeting "
+            + job_title + " roles in " + target_industry + " at " + seniority_level + " level.\n\n"
+            "Return ONLY valid JSON (no markdown) matching this schema:\n"
+            + _LINKEDIN_SCHEMA + "\n\n"
+            "Rules:\n"
+            "- headline_options: 5 distinct LinkedIn headline variants (120 chars max each).\n"
+            "- about_section: a full 2,000-char About section in first person.\n"
+            "- key_skills_to_add: top 15 skills to add for maximum recruiter discoverability.\n"
+            "- featured_project_ideas: 3 Featured section post ideas with titles.\n"
+            "- network_growth_tips: 5 specific actions to grow the right network.\n"
+            "- post_content_angles: 5 post topics that will attract target recruiters.\n"
+            "- profile_strength_score: 0–100 estimated current completeness.\n"
+            "- keyword_optimization_tips: 5 tips to surface in recruiter searches.\n"
+            "- connection_request_template: a short personalised connection request template.\n\n"
+            "TARGET ROLE: " + job_title + "\n"
+            "TARGET INDUSTRY: " + target_industry + "\n"
+            "SENIORITY: " + seniority_level + "\n\n"
+            "CV:\n" + cv_text
+        )
+
+        _fb = {
+            "headline_options": [], "about_section": "",
+            "key_skills_to_add": [], "featured_project_ideas": [],
+            "network_growth_tips": [], "post_content_angles": [],
+            "profile_strength_score": 0, "keyword_optimization_tips": [],
+            "connection_request_template": "", "summary": "",
+        }
+
+        def _run():
+            raw = gl.nondet.exec_prompt(prompt)
+            return json.dumps(_parse(str(raw), _fb), sort_keys=True)
+
+        result = gl.eq_principle.prompt_comparative(
+            _run,
+            _SOFT_JSON_CRITERIA,
+        )
+        self.linkedin_cache[content_hash] = result
+        self.total_linkedin_analyses = self.total_linkedin_analyses + u256(1)
+        return result
+
+    # ════════════════════════════════════════════════════════════════════
+    # 15. Candidate Reputation Score  (persistent, keyed by linkedin_url)
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def compute_reputation(
+        self,
+        linkedin_url: str,
+        cv_text: str,
+        application_hashes: str,
+        average_score: int,
+        best_role_types: str,
+    ) -> str:
+        self._check_live()
+
+        cached = self.reputation_store.get(linkedin_url, None)
+        if cached is not None:
+            return cached
+
+        prompt = (
+            "You are a talent intelligence system building a candidate reputation profile.\n"
+            "Analyse this candidate's aggregate career data across multiple job applications.\n\n"
+            "Return ONLY valid JSON (no markdown) matching this schema:\n"
+            + _REPUTATION_SCHEMA + "\n\n"
+            "Rules:\n"
+            "- reputation_score: 0–100 composite score across all dimensions.\n"
+            "- applications_analyzed: count of applications reviewed (from input).\n"
+            "- average_overall_score: integer average score (from input).\n"
+            "- best_fit_role_types: top 5 role types this candidate excels at.\n"
+            "- improvement_trend: 'improving' / 'stable' / 'declining'.\n"
+            "- consistency_score: 0–100 how consistently strong their applications are.\n"
+            "- top_strengths: 5 recurring strengths across applications.\n"
+            "- persistent_gaps: 3 recurring weaknesses to address.\n"
+            "- recommended_target_roles: 5 specific job titles to target.\n"
+            "- market_positioning: 1 sentence describing their market position.\n\n"
+            "LINKEDIN: " + linkedin_url + "\n"
+            "AVERAGE SCORE: " + str(average_score) + "\n"
+            "BEST ROLE TYPES: " + best_role_types + "\n"
+            "APPLICATION HASHES (count): " + str(len(application_hashes.split(","))) + "\n\n"
+            "CV:\n" + cv_text
+        )
+
+        _fb = {
+            "reputation_score": 0, "applications_analyzed": 0,
+            "average_overall_score": average_score,
+            "best_fit_role_types": [], "improvement_trend": "stable",
+            "consistency_score": 0, "top_strengths": [],
+            "persistent_gaps": [], "recommended_target_roles": [],
+            "market_positioning": "", "summary": "",
+        }
+
+        def _run():
+            raw = gl.nondet.exec_prompt(prompt)
+            return json.dumps(_parse(str(raw), _fb), sort_keys=True)
+
+        result = gl.eq_principle.prompt_comparative(
+            _run,
+            _SOFT_JSON_CRITERIA,
+        )
+        self.reputation_store[linkedin_url] = result
+        self.total_reputation_scores = self.total_reputation_scores + u256(1) if hasattr(self, 'total_reputation_scores') else u256(1)
+        return result
+
+    # ════════════════════════════════════════════════════════════════════
+    # 16. Cold Outreach Email & LinkedIn Message Drafter
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def draft_outreach(
+        self,
+        content_hash: str,
+        cv_text: str,
+        job_title: str,
+        company_name: str,
+        recruiter_name: str,
+        outreach_goal: str,
+    ) -> str:
+        self._check_live()
+
+        cached = self.outreach_cache.get(content_hash, None)
+        if cached is not None:
+            return cached
+
+        prompt = (
+            "You are an expert recruiter and career coach specialising in job search outreach.\n"
+            "Draft high-converting cold outreach materials for a candidate targeting "
+            + job_title + " at " + company_name + ".\n\n"
+            "Return ONLY valid JSON (no markdown) matching this schema:\n"
+            + _OUTREACH_SCHEMA + "\n\n"
+            "Rules:\n"
+            "- subject_lines: 3 email subject lines (A/B/C variants, <60 chars each).\n"
+            "- email_body: a full cold email (150–200 words, first person, no placeholders).\n"
+            "- linkedin_message: a LinkedIn connection message (300 chars max).\n"
+            "- follow_up_template: a polite 3-day follow-up email (80–100 words).\n"
+            "- personalization_hooks: 3 specific things to research before sending.\n"
+            "- value_propositions: 3 bullet-point value hooks from the candidate's CV.\n"
+            "- call_to_action: the exact CTA sentence.\n"
+            "- tone: describe the tone used (e.g. 'confident, concise, executive-level').\n"
+            "- optimal_send_time_tip: best day/time to send based on industry norms.\n\n"
+            "CANDIDATE GOAL: " + outreach_goal + "\n"
+            "RECRUITER NAME: " + recruiter_name + "\n"
+            "TARGET COMPANY: " + company_name + "\n"
+            "TARGET ROLE: " + job_title + "\n\n"
+            "CV:\n" + cv_text
+        )
+
+        _fb = {
+            "subject_lines": [], "email_body": "",
+            "linkedin_message": "", "follow_up_template": "",
+            "personalization_hooks": [], "value_propositions": [],
+            "call_to_action": "", "tone": "",
+            "optimal_send_time_tip": "", "summary": "",
+        }
+
+        def _run():
+            raw = gl.nondet.exec_prompt(prompt)
+            return json.dumps(_parse(str(raw), _fb), sort_keys=True)
+
+        result = gl.eq_principle.prompt_comparative(
+            _run,
+            _SOFT_JSON_CRITERIA,
+        )
+        self.outreach_cache[content_hash] = result
+        self.total_outreach_drafts = self.total_outreach_drafts + u256(1)
+        return result
+
+    # ════════════════════════════════════════════════════════════════════
+    # 17. Application Readiness Gate  (go / no-go verdict)
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def gate_readiness(
+        self,
+        content_hash: str,
+        cv_text: str,
+        job_text: str,
+        job_title: str,
+        current_score: int,
+        deadline_days: int,
+    ) -> str:
+        self._check_live()
+
+        cached = self.readiness_cache.get(content_hash, None)
+        if cached is not None:
+            return cached
+
+        prompt = (
+            "You are a senior career strategist determining whether a candidate should "
+            "apply NOW or invest more preparation time before applying.\n\n"
+            "Return ONLY valid JSON (no markdown) matching this schema:\n"
+            + _READINESS_SCHEMA + "\n\n"
+            "Rules:\n"
+            "- go_no_go: exactly 'GO', 'NO_GO', or 'GO_WITH_CAVEATS'.\n"
+            "- readiness_score: 0–100 composite readiness.\n"
+            "- confidence: 'high' / 'medium' / 'low'.\n"
+            "- top_blockers: up to 5 specific things blocking a strong application.\n"
+            "- quick_wins: 3 changes achievable in 48 hours that would significantly improve the application.\n"
+            "- estimated_prep_days: realistic integer days needed to be truly ready.\n"
+            "- minimum_score_to_apply: integer score threshold for a competitive application.\n"
+            "- current_score: the score passed in (" + str(current_score) + ").\n"
+            "- submission_risk_level: 'low' / 'medium' / 'high' — risk of rejection without prep.\n"
+            "- verdict_rationale: 2 sentences explaining the go/no-go.\n\n"
+            "CURRENT SCORE: " + str(current_score) + "\n"
+            "DEADLINE: " + str(deadline_days) + " days from now\n"
+            "JOB TITLE: " + job_title + "\n\n"
+            "JOB DESCRIPTION:\n" + job_text + "\n\n"
+            "CV:\n" + cv_text
+        )
+
+        _fb = {
+            "go_no_go": "GO_WITH_CAVEATS", "readiness_score": current_score,
+            "confidence": "low", "top_blockers": [],
+            "quick_wins": [], "estimated_prep_days": 3,
+            "minimum_score_to_apply": 60, "current_score": current_score,
+            "submission_risk_level": "medium", "verdict_rationale": "",
+            "summary": "",
+        }
+
+        def _run():
+            raw = gl.nondet.exec_prompt(prompt)
+            return json.dumps(_parse(str(raw), _fb), sort_keys=True)
+
+        result = gl.eq_principle.prompt_comparative(
+            _run,
+            _SOFT_JSON_CRITERIA,
+        )
+        self.readiness_cache[content_hash] = result
+        self.total_readiness_gates = self.total_readiness_gates + u256(1)
+        return result
+
+    # ════════════════════════════════════════════════════════════════════
+    # 18. Comparative Job Fit Ranking  (Job A vs Job B for same candidate)
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def rank_job_fit(
+        self,
+        rank_hash: str,
+        cv_text: str,
+        job_a_text: str,
+        job_a_title: str,
+        job_a_company: str,
+        job_b_text: str,
+        job_b_title: str,
+        job_b_company: str,
+        career_goal: str,
+    ) -> str:
+        self._check_live()
+
+        cached = self.job_rank_cache.get(rank_hash, None)
+        if cached is not None:
+            return cached
+
+        prompt = (
+            "You are a strategic career advisor comparing two job opportunities for one candidate.\n"
+            "Determine which job is the better fit given the candidate's CV and stated career goal.\n\n"
+            "Return ONLY valid JSON (no markdown) matching this schema:\n"
+            + _JOB_RANK_SCHEMA + "\n\n"
+            "Rules:\n"
+            "- winner: exactly '" + job_a_company + "' or '" + job_b_company + "'.\n"
+            "- job_a_fit_score / job_b_fit_score: integers 0–100.\n"
+            "- comparison_dimensions.skill_match: {job_a: int, job_b: int}.\n"
+            "- comparison_dimensions.career_growth: {job_a: str, job_b: str}.\n"
+            "- comparison_dimensions.ats_friendliness: {job_a: int, job_b: int}.\n"
+            "- comparison_dimensions.culture_fit: {job_a: str, job_b: str}.\n"
+            "- recommendation: 2 sentences explaining which to prioritise and why.\n"
+            "- trade_offs: 4 key trade-offs between the two roles.\n"
+            "- growth_potential_comparison: which offers more growth and why.\n"
+            "- salary_potential_comparison: which likely pays more and why.\n"
+            "- apply_order: [company_to_apply_first, company_to_apply_second].\n\n"
+            "CANDIDATE GOAL: " + career_goal + "\n\n"
+            "JOB A — " + job_a_title + " at " + job_a_company + ":\n" + job_a_text + "\n\n"
+            "JOB B — " + job_b_title + " at " + job_b_company + ":\n" + job_b_text + "\n\n"
+            "CV:\n" + cv_text
+        )
+
+        _fb = {
+            "winner": job_a_company,
+            "job_a_fit_score": 0, "job_b_fit_score": 0,
+            "comparison_dimensions": {
+                "skill_match": {"job_a": 0, "job_b": 0},
+                "career_growth": {"job_a": "", "job_b": ""},
+                "ats_friendliness": {"job_a": 0, "job_b": 0},
+                "culture_fit": {"job_a": "", "job_b": ""},
+            },
+            "recommendation": "", "trade_offs": [],
+            "growth_potential_comparison": "",
+            "salary_potential_comparison": "",
+            "apply_order": [job_a_company, job_b_company],
+            "summary": "",
+        }
+
+        def _run():
+            raw = gl.nondet.exec_prompt(prompt)
+            return json.dumps(_parse(str(raw), _fb), sort_keys=True)
+
+        result = gl.eq_principle.prompt_comparative(
+            _run,
+            _SOFT_JSON_CRITERIA,
+        )
+        self.job_rank_cache[rank_hash] = result
+        self.total_job_rankings = self.total_job_rankings + u256(1)
+        return result
+
+    # ════════════════════════════════════════════════════════════════════
+    # 19. Weak CV Bullet Rewriter
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def rewrite_weak_bullets(
+        self,
+        content_hash: str,
+        cv_text: str,
+        job_title: str,
+        target_company: str,
+    ) -> str:
+        self._check_live()
+
+        cached = self.weak_bullet_cache.get(content_hash, None)
+        if cached is not None:
+            return cached
+
+        prompt = (
+            "You are an expert CV writer specialising in achievement-oriented bullet point rewriting.\n"
+            "Identify and rewrite the weakest CV bullets for a candidate targeting "
+            + job_title + " at " + target_company + ".\n\n"
+            "Return ONLY valid JSON (no markdown) matching this schema:\n"
+            + _WEAK_BULLET_SCHEMA + "\n\n"
+            "Rules:\n"
+            "- weak_bullets: the 5 weakest bullets from the CV (copy verbatim).\n"
+            "- rewritten_bullets: your improved version of each weak bullet in order.\n"
+            "- impact_improvement_score: 0–100 estimated improvement in impact.\n"
+            "- quantification_opportunities: 3 bullets that could add specific numbers/metrics.\n"
+            "- action_verb_upgrades: weak verbs found and their stronger replacements.\n"
+            "- achievement_framing_tips: 3 tips to shift from duties to achievements.\n\n"
+            "TARGET ROLE: " + job_title + "\n"
+            "TARGET COMPANY: " + target_company + "\n\n"
+            "CV:\n" + cv_text
+        )
+
+        _fb = {
+            "weak_bullets": [], "rewritten_bullets": [],
+            "impact_improvement_score": 0, "quantification_opportunities": [],
+            "action_verb_upgrades": [], "achievement_framing_tips": [],
+            "summary": "",
+        }
+
+        def _run():
+            raw = gl.nondet.exec_prompt(prompt)
+            return json.dumps(_parse(str(raw), _fb), sort_keys=True)
+
+        result = gl.eq_principle.prompt_comparative(
+            _run,
+            _SOFT_JSON_CRITERIA,
+        )
+        self.weak_bullet_cache[content_hash] = result
+        self.total_weak_bullet_rewrites = self.total_weak_bullet_rewrites + u256(1)
+        return result
+
+    # ════════════════════════════════════════════════════════════════════
+    # 20. Extended Full-Suite Batch  (all 6 new modules in one transaction)
+    # ════════════════════════════════════════════════════════════════════
+
+    @gl.public.write
+    def run_extended_suite(
+        self,
+        content_hash: str,
+        cv_text: str,
+        job_text: str,
+        job_title: str,
+        company_name: str,
+        target_industry: str,
+        seniority_level: str,
+        recruiter_name: str,
+        outreach_goal: str,
+        current_score: int,
+        deadline_days: int,
+    ) -> str:
+        self._check_live()
+
+        # ── Bias detection ───────────────────────────────────────────────
+        bias_key = "bias_" + content_hash
+        bias_result = self.bias_analyses.get(bias_key, None)
+        if bias_result is None:
+            _bias_p = (
+                "DEI specialist: analyse for bias.\n"
+                "Return ONLY valid JSON matching:\n" + _BIAS_SCHEMA + "\n\n"
+                "COMPANY: " + company_name + "\nROLE: " + job_title + "\n\n"
+                "JOB DESCRIPTION:\n" + job_text
+            )
+            _fb_bias = {
+                "bias_score": 0, "detected_biases": [],
+                "exclusionary_language": [], "inclusive_signals": [],
+                "gendered_terms": [], "age_related_signals": [],
+                "accessibility_gaps": [], "overqualification_signals": [],
+                "culture_fit_gatekeeping": [], "recommendations": [],
+                "overall_verdict": "inclusive", "summary": "",
+            }
+            def _bias():
+                raw = gl.nondet.exec_prompt(_bias_p)
+                return json.dumps(_parse(str(raw), _fb_bias), sort_keys=True)
+            bias_result = gl.eq_principle.prompt_comparative(_bias, _SOFT_JSON_CRITERIA)
+            self.bias_analyses[bias_key] = bias_result
+            self.total_bias_analyses = self.total_bias_analyses + u256(1)
+
+        # ── Weak bullet rewrite ──────────────────────────────────────────
+        wb_key = "wb_" + content_hash
+        wb_result = self.weak_bullet_cache.get(wb_key, None)
+        if wb_result is None:
+            _wb_p = (
+                "Expert CV writer. Identify and rewrite 5 weakest bullets for "
+                + job_title + " at " + company_name + ".\n"
+                "Return ONLY valid JSON matching:\n" + _WEAK_BULLET_SCHEMA + "\n\n"
+                "CV:\n" + cv_text
+            )
+            _fb_wb = {
+                "weak_bullets": [], "rewritten_bullets": [],
+                "impact_improvement_score": 0, "quantification_opportunities": [],
+                "action_verb_upgrades": [], "achievement_framing_tips": [],
+                "summary": "",
+            }
+            def _wb():
+                raw = gl.nondet.exec_prompt(_wb_p)
+                return json.dumps(_parse(str(raw), _fb_wb), sort_keys=True)
+            wb_result = gl.eq_principle.prompt_comparative(_wb, _SOFT_JSON_CRITERIA)
+            self.weak_bullet_cache[wb_key] = wb_result
+            self.total_weak_bullet_rewrites = self.total_weak_bullet_rewrites + u256(1)
+
+        # ── LinkedIn optimisation ────────────────────────────────────────
+        li_key = "li_" + content_hash
+        li_result = self.linkedin_cache.get(li_key, None)
+        if li_result is None:
+            _li_p = (
+                "LinkedIn personal branding expert. Optimise profile for "
+                + job_title + " in " + target_industry + " at " + seniority_level + " level.\n"
+                "Return ONLY valid JSON matching:\n" + _LINKEDIN_SCHEMA + "\n\n"
+                "CV:\n" + cv_text
+            )
+            _fb_li = {
+                "headline_options": [], "about_section": "",
+                "key_skills_to_add": [], "featured_project_ideas": [],
+                "network_growth_tips": [], "post_content_angles": [],
+                "profile_strength_score": 0, "keyword_optimization_tips": [],
+                "connection_request_template": "", "summary": "",
+            }
+            def _li():
+                raw = gl.nondet.exec_prompt(_li_p)
+                return json.dumps(_parse(str(raw), _fb_li), sort_keys=True)
+            li_result = gl.eq_principle.prompt_comparative(_li, _SOFT_JSON_CRITERIA)
+            self.linkedin_cache[li_key] = li_result
+            self.total_linkedin_analyses = self.total_linkedin_analyses + u256(1)
+
+        # ── Readiness gate ───────────────────────────────────────────────
+        rg_key = "rg_" + content_hash
+        rg_result = self.readiness_cache.get(rg_key, None)
+        if rg_result is None:
+            _rg_p = (
+                "Career strategist: GO / NO_GO / GO_WITH_CAVEATS for applying to "
+                + job_title + " at " + company_name + ".\n"
+                "Current score: " + str(current_score) + ". Deadline: " + str(deadline_days) + " days.\n"
+                "Return ONLY valid JSON matching:\n" + _READINESS_SCHEMA + "\n\n"
+                "JOB DESCRIPTION:\n" + job_text + "\n\nCV:\n" + cv_text
+            )
+            _fb_rg = {
+                "go_no_go": "GO_WITH_CAVEATS", "readiness_score": current_score,
+                "confidence": "low", "top_blockers": [], "quick_wins": [],
+                "estimated_prep_days": 3, "minimum_score_to_apply": 60,
+                "current_score": current_score, "submission_risk_level": "medium",
+                "verdict_rationale": "", "summary": "",
+            }
+            def _rg():
+                raw = gl.nondet.exec_prompt(_rg_p)
+                return json.dumps(_parse(str(raw), _fb_rg), sort_keys=True)
+            rg_result = gl.eq_principle.prompt_comparative(_rg, _SOFT_JSON_CRITERIA)
+            self.readiness_cache[rg_key] = rg_result
+            self.total_readiness_gates = self.total_readiness_gates + u256(1)
+
+        # ── Cold outreach ────────────────────────────────────────────────
+        oa_key = "oa_" + content_hash
+        oa_result = self.outreach_cache.get(oa_key, None)
+        if oa_result is None:
+            _oa_p = (
+                "Cold outreach expert. Draft outreach for " + job_title + " at " + company_name + ".\n"
+                "Goal: " + outreach_goal + ". Recruiter: " + recruiter_name + ".\n"
+                "Return ONLY valid JSON matching:\n" + _OUTREACH_SCHEMA + "\n\n"
+                "CV:\n" + cv_text
+            )
+            _fb_oa = {
+                "subject_lines": [], "email_body": "",
+                "linkedin_message": "", "follow_up_template": "",
+                "personalization_hooks": [], "value_propositions": [],
+                "call_to_action": "", "tone": "",
+                "optimal_send_time_tip": "", "summary": "",
+            }
+            def _oa():
+                raw = gl.nondet.exec_prompt(_oa_p)
+                return json.dumps(_parse(str(raw), _fb_oa), sort_keys=True)
+            oa_result = gl.eq_principle.prompt_comparative(_oa, _SOFT_JSON_CRITERIA)
+            self.outreach_cache[oa_key] = oa_result
+            self.total_outreach_drafts = self.total_outreach_drafts + u256(1)
+
+        return json.dumps({
+            "content_hash":        content_hash,
+            "bias_analysis":       _parse(bias_result, {}),
+            "weak_bullet_rewrite": _parse(wb_result, {}),
+            "linkedin_analysis":   _parse(li_result, {}),
+            "readiness_gate":      _parse(rg_result, {}),
+            "outreach_draft":      _parse(oa_result, {}),
         }, sort_keys=True)

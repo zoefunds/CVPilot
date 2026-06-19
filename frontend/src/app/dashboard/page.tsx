@@ -162,8 +162,8 @@ export default function DashboardPage() {
             Start a new evaluation
           </h2>
           <p className="mt-1 max-w-xl text-[14px] text-[#4b463f]">
-            Upload your CV, paste a job URL, and we deliver a consensus
-            scored breakdown in under a minute.
+            Upload your CV, paste a job URL, and get a 19-module consensus-scored breakdown
+            with a GO / NO-GO verdict in under 60 seconds.
           </p>
         </div>
         <Link
@@ -174,6 +174,40 @@ export default function DashboardPage() {
           New evaluation
         </Link>
       </div>
+
+      {/* Module quick-access grid */}
+      <section className="mt-8">
+        <h2
+          className="mb-4 text-[18px] text-[#1c1c17]"
+          style={{ fontFamily: "Literata, serif", fontWeight: 600 }}
+        >
+          What&rsquo;s in your evaluation
+        </h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {[
+            { icon: "filter" as IconName, label: "ATS scoring" },
+            { icon: "analytics" as IconName, label: "Job match" },
+            { icon: "spark" as IconName, label: "Skills gap" },
+            { icon: "psychology" as IconName, label: "Interview prep" },
+            { icon: "wallet" as IconName, label: "Salary estimate" },
+            { icon: "edit" as IconName, label: "Bullet rewriter" },
+            { icon: "verified" as IconName, label: "Readiness gate" },
+            { icon: "document" as IconName, label: "Career analysis" },
+            { icon: "shield_check" as IconName, label: "Bias detection" },
+            { icon: "bolt" as IconName, label: "Cold outreach" },
+          ].map((m) => (
+            <div
+              key={m.label}
+              className="flex items-center gap-3 rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] px-4 py-3"
+            >
+              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#1c1c17]/8 text-[#1c1c17]">
+                <Icon name={m.icon} size={14} />
+              </span>
+              <span className="text-[12px] font-medium text-[#1c1c17]">{m.label}</span>
+            </div>
+          ))}
+        </div>
+      </section>
 
       <section className="mt-10">
         <div className="mb-4 flex items-baseline justify-between">

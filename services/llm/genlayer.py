@@ -305,10 +305,17 @@ class GenLayerLLMClient(LLMClient):
         """Best-effort reads of the supplementary analyses. Never raises."""
         out: dict = {}
         for key, fn, arg in [
+            # Core modules
             ("skills_analysis",       "get_skills_analysis",       content_hash),
             ("career_analysis",       "get_career_analysis",       content_hash),
             ("cover_letter_analysis", "get_cover_letter_analysis", content_hash),
             ("salary_estimate",       "get_salary_estimate",       content_hash),
+            # Extended modules
+            ("bias_analysis",         "get_bias_analysis",         content_hash),
+            ("linkedin_optimisation", "get_linkedin_analysis",     content_hash),
+            ("outreach_draft",        "get_outreach_draft",        content_hash),
+            ("readiness_gate",        "get_readiness_gate",        content_hash),
+            ("weak_bullet_rewrite",   "get_weak_bullet_rewrite",   content_hash),
         ]:
             ok, raw = self._try_read(fn, [arg])
             if ok and raw:

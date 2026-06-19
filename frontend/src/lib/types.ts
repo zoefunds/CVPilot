@@ -178,11 +178,77 @@ export interface SalaryEstimate {
   market_signals: string[];
 }
 
+export interface BiasAnalysis {
+  bias_score: number;
+  detected_biases: string[];
+  exclusionary_language: string[];
+  inclusive_signals: string[];
+  gendered_terms: string[];
+  age_related_signals: string[];
+  recommendations: string[];
+  overall_verdict: string;
+  summary: string;
+}
+
+export interface LinkedInOptimisation {
+  headline_options: string[];
+  about_section: string;
+  key_skills_to_add: string[];
+  featured_project_ideas: string[];
+  network_growth_tips: string[];
+  post_content_angles: string[];
+  profile_strength_score: number;
+  keyword_optimization_tips: string[];
+  connection_request_template: string;
+  summary: string;
+}
+
+export interface OutreachDraft {
+  subject_lines: string[];
+  email_body: string;
+  linkedin_message: string;
+  follow_up_template: string;
+  personalization_hooks: string[];
+  value_propositions: string[];
+  call_to_action: string;
+  tone: string;
+  summary: string;
+}
+
+export interface ReadinessGate {
+  go_no_go: string;
+  readiness_score: number;
+  confidence: string;
+  top_blockers: string[];
+  quick_wins: string[];
+  estimated_prep_days: number;
+  minimum_score_to_apply: number;
+  current_score: number;
+  submission_risk_level: string;
+  verdict_rationale: string;
+  summary: string;
+}
+
+export interface WeakBulletRewrite {
+  weak_bullets: string[];
+  rewritten_bullets: string[];
+  impact_improvement_score: number;
+  quantification_opportunities: string[];
+  action_verb_upgrades: string[];
+  achievement_framing_tips: string[];
+  summary: string;
+}
+
 export interface EvaluationExtras {
   skills_analysis?: SkillsAnalysis;
   career_analysis?: CareerAnalysis;
   cover_letter_analysis?: CoverLetterAnalysis;
   salary_estimate?: SalaryEstimate;
+  bias_analysis?: BiasAnalysis;
+  linkedin_optimisation?: LinkedInOptimisation;
+  outreach_draft?: OutreachDraft;
+  readiness_gate?: ReadinessGate;
+  weak_bullet_rewrite?: WeakBulletRewrite;
 }
 
 export interface EvaluationPublic {

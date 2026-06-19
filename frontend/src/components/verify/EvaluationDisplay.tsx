@@ -2,7 +2,7 @@
 
 import { ScoreGauge } from "@/components/ui/ScoreGauge";
 import { Icon } from "@/components/icons/Icon";
-import type { CareerAnalysis, CoverLetterAnalysis, EvaluationExtras, PublicEvaluation, SalaryEstimate, SkillsAnalysis } from "@/lib/types";
+import type { BiasAnalysis, CareerAnalysis, CoverLetterAnalysis, EvaluationExtras, LinkedInOptimisation, OutreachDraft, PublicEvaluation, ReadinessGate, SalaryEstimate, SkillsAnalysis, WeakBulletRewrite } from "@/lib/types";
 
 function shortHash(h: string | null | undefined): string {
   if (!h) return "";
@@ -459,16 +459,262 @@ function SalaryPanel({ data }: { data: SalaryEstimate }) {
   );
 }
 
+function ReadinessPanel({ data }: { data: ReadinessGate }) {
+  const verdictColor =
+    data.go_no_go === "GO" ? "bg-emerald-100 text-emerald-800" :
+    data.go_no_go === "NO_GO" ? "bg-red-100 text-red-800" :
+    "bg-amber-100 text-amber-800";
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <SectionTitle>Readiness gate</SectionTitle>
+        <span className={`rounded-full px-4 py-1 text-[13px] font-bold uppercase tracking-wide ${verdictColor}`}>
+          {data.go_no_go?.replace(/_/g, " ")}
+        </span>
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        {[
+          { label: "Readiness score", val: data.readiness_score },
+          { label: "Min. score to apply", val: data.minimum_score_to_apply },
+          { label: "Prep days needed", val: data.estimated_prep_days },
+        ].map(({ label, val }) => (
+          <div key={label} className="rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">{label}</p>
+            <p className="mt-1 text-[28px] font-bold text-[#1c1c17]">{val}</p>
+          </div>
+        ))}
+      </div>
+
+      {data.verdict_rationale ? (
+        <p className="text-[14px] leading-relaxed text-[#4b463f]">{data.verdict_rationale}</p>
+      ) : null}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        {data.top_blockers?.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Top blockers</p>
+            <BulletList items={data.top_blockers} />
+          </div>
+        )}
+        {data.quick_wins?.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700">Quick wins</p>
+            <ul className="mt-3 grid gap-2">
+              {data.quick_wins.map((item, i) => (
+                <li key={i} className="flex items-start gap-2 text-[13px] leading-relaxed text-emerald-800">
+                  <span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-600" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function BiasPanel({ data }: { data: BiasAnalysis }) {
+  const scoreColor = data.bias_score <= 25 ? "bg-emerald-100 text-emerald-800" :
+    data.bias_score <= 60 ? "bg-amber-100 text-amber-800" : "bg-red-100 text-red-800";
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <SectionTitle>Bias detection</SectionTitle>
+        <span className={`rounded-full px-3 py-1 text-[12px] font-semibold ${scoreColor}`}>
+          Bias score {data.bias_score}/100
+        </span>
+      </div>
+
+      {data.summary ? <p className="text-[14px] leading-relaxed text-[#4b463f]">{data.summary}</p> : null}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        {data.detected_biases?.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-red-700">Detected biases</p>
+            <BulletList items={data.detected_biases} />
+          </div>
+        )}
+        {data.inclusive_signals?.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-emerald-700">Inclusive signals</p>
+            <BulletList items={data.inclusive_signals} />
+          </div>
+        )}
+      </div>
+
+      {data.recommendations?.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Recommendations</p>
+          <BulletList items={data.recommendations} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LinkedInPanel({ data }: { data: LinkedInOptimisation }) {
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <SectionTitle>LinkedIn optimisation</SectionTitle>
+        <span className="rounded-full bg-[#0077b5] px-3 py-1 text-[12px] font-semibold text-white">
+          Profile strength {data.profile_strength_score}/100
+        </span>
+      </div>
+
+      {data.headline_options?.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Headline options</p>
+          <ul className="mt-3 grid gap-2">
+            {data.headline_options.map((h, i) => (
+              <li key={i} className="rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-3 text-[13px] font-medium text-[#1c1c17]">
+                "{h}"
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {data.about_section ? (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">About section draft</p>
+          <p className="mt-2 rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4 text-[13px] leading-relaxed italic text-[#4b463f]">
+            {data.about_section}
+          </p>
+        </div>
+      ) : null}
+
+      <div className="grid gap-5 sm:grid-cols-2">
+        {data.key_skills_to_add?.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Skills to add</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {data.key_skills_to_add.map((s) => <Pill key={s}>{s}</Pill>)}
+            </div>
+          </div>
+        )}
+        {data.network_growth_tips?.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Network growth tips</p>
+            <BulletList items={data.network_growth_tips} />
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function OutreachPanel({ data }: { data: OutreachDraft }) {
+  return (
+    <section className="flex flex-col gap-5">
+      <SectionTitle>Cold outreach</SectionTitle>
+
+      {data.subject_lines?.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Subject lines</p>
+          <ul className="mt-3 grid gap-2">
+            {data.subject_lines.map((s, i) => (
+              <li key={i} className="rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-3 text-[13px] font-medium text-[#1c1c17]">
+                {s}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {data.email_body ? (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Email draft</p>
+          <p className="mt-2 whitespace-pre-line rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4 text-[13px] leading-relaxed text-[#4b463f]">
+            {data.email_body}
+          </p>
+        </div>
+      ) : null}
+
+      {data.linkedin_message ? (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">LinkedIn message</p>
+          <p className="mt-2 rounded-xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4 text-[13px] leading-relaxed italic text-[#4b463f]">
+            {data.linkedin_message}
+          </p>
+        </div>
+      ) : null}
+
+      {data.personalization_hooks?.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Personalisation hooks</p>
+          <BulletList items={data.personalization_hooks} />
+        </div>
+      )}
+    </section>
+  );
+}
+
+function WeakBulletPanel({ data }: { data: WeakBulletRewrite }) {
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center gap-3">
+        <SectionTitle>Bullet rewriter</SectionTitle>
+        {data.impact_improvement_score > 0 && (
+          <span className="rounded-full bg-[#1c1c17] px-3 py-1 text-[12px] font-semibold text-white">
+            +{data.impact_improvement_score} impact score
+          </span>
+        )}
+      </div>
+
+      {data.weak_bullets?.length > 0 && data.rewritten_bullets?.length > 0 && (
+        <div className="grid gap-3">
+          {data.weak_bullets.map((weak, i) => (
+            <div key={i} className="rounded-2xl border border-[#cdc5bc]/50 bg-[#fcf9f1] p-4">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-red-600">Before</p>
+              <p className="mt-1 text-[13px] leading-relaxed text-[#4b463f] line-through">{weak}</p>
+              {data.rewritten_bullets[i] && (
+                <>
+                  <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-emerald-700">After</p>
+                  <p className="mt-1 text-[13px] font-medium leading-relaxed text-[#1c1c17]">{data.rewritten_bullets[i]}</p>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {data.action_verb_upgrades?.length > 0 && (
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#7c766e]">Action verb upgrades</p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {data.action_verb_upgrades.map((v) => <Pill key={v}>{v}</Pill>)}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function ExtrasPanel({ extras }: { extras: EvaluationExtras }) {
-  const hasAny = extras.skills_analysis || extras.career_analysis || extras.cover_letter_analysis || extras.salary_estimate;
+  const hasAny =
+    extras.skills_analysis || extras.career_analysis ||
+    extras.cover_letter_analysis || extras.salary_estimate ||
+    extras.readiness_gate || extras.bias_analysis ||
+    extras.linkedin_optimisation || extras.outreach_draft ||
+    extras.weak_bullet_rewrite;
   if (!hasAny) return null;
 
   return (
     <div className="flex flex-col gap-10">
+      {extras.readiness_gate && <ReadinessPanel data={extras.readiness_gate} />}
       {extras.skills_analysis && <SkillsPanel data={extras.skills_analysis} />}
+      {extras.salary_estimate && <SalaryPanel data={extras.salary_estimate} />}
       {extras.career_analysis && <CareerPanel data={extras.career_analysis} />}
       {extras.cover_letter_analysis && <CoverLetterPanel data={extras.cover_letter_analysis} />}
-      {extras.salary_estimate && <SalaryPanel data={extras.salary_estimate} />}
+      {extras.weak_bullet_rewrite && <WeakBulletPanel data={extras.weak_bullet_rewrite} />}
+      {extras.bias_analysis && <BiasPanel data={extras.bias_analysis} />}
+      {extras.linkedin_optimisation && <LinkedInPanel data={extras.linkedin_optimisation} />}
+      {extras.outreach_draft && <OutreachPanel data={extras.outreach_draft} />}
     </div>
   );
 }

@@ -26,7 +26,7 @@ Two supported targets: Fly.io (recommended, two apps) and Render
          DATABASE_URL="postgresql+psycopg://..." \
          REDIS_URL="redis://..." \
          APP_FRONTEND_ORIGIN="https://cvpilot.app" \
-         GENLAYER_CONTRACT_ADDRESS="0x51D4DC0eF0759721216b829a844f6c80325ED15b"
+         GENLAYER_CONTRACT_ADDRESS="0xF764D9797A6685E5d14160A8932307FA08cbbc67"
 
    Repeat with -a cvpilot-worker using the same values.
 

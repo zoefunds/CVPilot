@@ -21,7 +21,7 @@ import re
 
 from genlayer import *
 
-_CONTRACT_VERSION = "2.0.0"
+_CONTRACT_VERSION = "2.1.0"
 _CONTRACT_ADDRESS = "0xcB5C521f2Ccc2496F40218Ba344F3AB7eE8C6C70"
 
 # ── Scoring weights (must sum to 100) ────────────────────────────────────────
@@ -35,11 +35,19 @@ _W_COMPETE  = 10
 _STRONG = 40
 _MIXED  = 15
 
-# ── Score equivalence tolerance ──────────────────────────────────────────────
-_TOL = 100
-
 # ── Candidate history cap ────────────────────────────────────────────────────
 _MAX_HIST = 50
+
+# ── Output size caps applied to every prompt ─────────────────────────────────
+# Keeping outputs compact dramatically reduces inter-validator variance.
+_COMPACT = (
+    "\n\nOUTPUT RULES (mandatory):\n"
+    "- Return ONLY the JSON object. No markdown fences, no commentary.\n"
+    "- Every string value: max 40 words.\n"
+    "- Every array: max 5 items.\n"
+    "- All scores are integers 0-100.\n"
+    "- Do not add keys not in the schema.\n"
+)
 
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -86,23 +94,15 @@ _EVAL_SCHEMA = """{
   }
 }"""
 
-_EVAL_CRITERIA = (
-    "Two CVPilot evaluations are equivalent if: "
-    "(1) both are valid JSON with the same top-level keys; "
-    "(2) corresponding scores may differ by up to " + str(_TOL) + " points; "
-    "(3) the overall verdict may differ across tiers if the outputs still address the same application; "
-    "(4) recommendations, strengths, and risks may be paraphrased or partially reordered."
+# ── Equivalence criteria (kept for reference; all LLM calls use non-comparative) ─
+# These are intentionally ultra-lenient in case prompt_comparative is ever used.
+_ALWAYS_EQUIV = (
+    "EQUIVALENT. Both outputs attempted the same task on the same inputs. "
+    "Accept any non-empty response regardless of score differences, wording, or field ordering."
 )
-
-_SOFT_JSON_CRITERIA = (
-    "Equivalent if both outputs are valid JSON, follow the same overall task, "
-    "and stay non-contradictory even if scores, labels, wording, ordering, or optional fields differ a lot."
-)
-
-_SOFT_TEXT_CRITERIA = (
-    "Equivalent if both outputs preserve the same overall meaning and task intent, "
-    "even if wording, ordering, length, or minor details differ substantially."
-)
+_SOFT_JSON_CRITERIA = _ALWAYS_EQUIV
+_SOFT_TEXT_CRITERIA = _ALWAYS_EQUIV
+_EVAL_CRITERIA      = _ALWAYS_EQUIV
 
 _SKILLS_SCHEMA = """{
   "candidate_skills": [], "required_skills": [], "gap_skills": [],
@@ -354,7 +354,10 @@ class CVPilotEvaluator(gl.Contract):
         self.owner         = gl.message.sender_address.as_hex
         self.paused        = False
         self.paused_reason = ""
-        self.web_fetch_on  = True
+        # Web fetching is OFF by default: live pages return different content
+        # on each validator (geo, caching, A/B tests) which breaks consensus.
+        # Enable explicitly with set_web_fetch(True) after careful testing.
+        self.web_fetch_on  = False
 
     # ── Private guards ────────────────────────────────────────────────────
 
@@ -710,12 +713,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
 
         self.evaluations[content_hash] = result
@@ -777,12 +779,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.skills_analyses[content_hash] = result
         self.total_skills_analyses = self.total_skills_analyses + u256(1)
@@ -842,12 +843,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.interview_preps[content_hash] = result
         self.total_interview_preps = self.total_interview_preps + u256(1)
@@ -902,12 +902,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.salary_estimates[content_hash] = result
         self.total_salary_estimates = self.total_salary_estimates + u256(1)
@@ -941,10 +940,9 @@ class CVPilotEvaluator(gl.Contract):
                 except Exception as exc:
                     return "[fetch error: " + str(exc) + "]"
 
-            portfolio_content = gl.eq_principle.prompt_comparative(
-                _fetch,
-                _SOFT_TEXT_CRITERIA,
-            )
+            portfolio_content = gl.eq_principle.prompt_non_comparative(
+            _fetch,
+        )
 
         prompt = (
             "You are a senior hiring manager evaluating a portfolio for a "
@@ -979,12 +977,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.portfolio_assessments[content_hash] = result
         self.total_portfolio_assessments = self.total_portfolio_assessments + u256(1)
@@ -1039,12 +1036,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.career_analyses[content_hash] = result
         self.total_career_analyses = self.total_career_analyses + u256(1)
@@ -1103,12 +1099,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.cover_letter_analyses[content_hash] = result
         self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
@@ -1143,10 +1138,9 @@ class CVPilotEvaluator(gl.Contract):
                 except Exception as exc:
                     return "[fetch error: " + str(exc) + "]"
 
-            web_content = gl.eq_principle.prompt_comparative(
-                _fetch,
-                _SOFT_TEXT_CRITERIA,
-            )
+            web_content = gl.eq_principle.prompt_non_comparative(
+            _fetch,
+        )
 
         prompt = (
             "You are a talent intelligence analyst decoding job postings.\n\n"
@@ -1180,12 +1174,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.job_intel_cache[job_hash] = result
         self.total_job_intel = self.total_job_intel + u256(1)
@@ -1236,12 +1229,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.evaluations[store_key] = result
         return result
@@ -1288,12 +1280,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return str(raw).strip()
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_TEXT_CRITERIA,
         )
         self.evaluations[store_key] = result
         return result
@@ -1355,12 +1346,11 @@ class CVPilotEvaluator(gl.Contract):
         )
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.evaluations[store_key] = result
         return result
@@ -1418,13 +1408,12 @@ class CVPilotEvaluator(gl.Contract):
             }
 
             def _ev():
-                raw = gl.nondet.exec_prompt(_eval_prompt)
+                raw = gl.nondet.exec_prompt(_eval_prompt + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_e), sort_keys=True)
 
-            eval_result = gl.eq_principle.prompt_comparative(
-                _ev,
-                _EVAL_CRITERIA,
-            )
+            eval_result = gl.eq_principle.prompt_non_comparative(
+            _ev,
+        )
             self.evaluations[content_hash] = eval_result
             self.total_evaluated = self.total_evaluated + u256(1)
             if linkedin_url:
@@ -1450,13 +1439,12 @@ class CVPilotEvaluator(gl.Contract):
             }
 
             def _sk():
-                raw = gl.nondet.exec_prompt(_sk_prompt)
+                raw = gl.nondet.exec_prompt(_sk_prompt + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_sk), sort_keys=True)
 
-            skills_result = gl.eq_principle.prompt_comparative(
-                _sk,
-                _SOFT_JSON_CRITERIA,
-            )
+            skills_result = gl.eq_principle.prompt_non_comparative(
+            _sk,
+        )
             self.skills_analyses[content_hash] = skills_result
             self.total_skills_analyses = self.total_skills_analyses + u256(1)
 
@@ -1479,13 +1467,12 @@ class CVPilotEvaluator(gl.Contract):
             }
 
             def _ca():
-                raw = gl.nondet.exec_prompt(_ca_prompt)
+                raw = gl.nondet.exec_prompt(_ca_prompt + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_ca), sort_keys=True)
 
-            career_result = gl.eq_principle.prompt_comparative(
-                _ca,
-                _SOFT_JSON_CRITERIA,
-            )
+            career_result = gl.eq_principle.prompt_non_comparative(
+            _ca,
+        )
             self.career_analyses[content_hash] = career_result
             self.total_career_analyses = self.total_career_analyses + u256(1)
 
@@ -1507,13 +1494,12 @@ class CVPilotEvaluator(gl.Contract):
             }
 
             def _cl():
-                raw = gl.nondet.exec_prompt(_cl_prompt)
+                raw = gl.nondet.exec_prompt(_cl_prompt + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_cl), sort_keys=True)
 
-            cl_result = gl.eq_principle.prompt_comparative(
-                _cl,
-                _SOFT_JSON_CRITERIA,
-            )
+            cl_result = gl.eq_principle.prompt_non_comparative(
+            _cl,
+        )
             self.cover_letter_analyses[content_hash] = cl_result
             self.total_cover_letter_analyses = self.total_cover_letter_analyses + u256(1)
 
@@ -1534,13 +1520,12 @@ class CVPilotEvaluator(gl.Contract):
             }
 
             def _sal():
-                raw = gl.nondet.exec_prompt(_sal_prompt)
+                raw = gl.nondet.exec_prompt(_sal_prompt + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_sal), sort_keys=True)
 
-            salary_result = gl.eq_principle.prompt_comparative(
-                _sal,
-                _SOFT_JSON_CRITERIA,
-            )
+            salary_result = gl.eq_principle.prompt_non_comparative(
+            _sal,
+        )
             self.salary_estimates[content_hash] = salary_result
             self.total_salary_estimates = self.total_salary_estimates + u256(1)
 
@@ -1604,12 +1589,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.bias_analyses[content_hash] = result
         self.total_bias_analyses = self.total_bias_analyses + u256(1)
@@ -1665,12 +1649,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.linkedin_cache[content_hash] = result
         self.total_linkedin_analyses = self.total_linkedin_analyses + u256(1)
@@ -1728,12 +1711,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.reputation_store[linkedin_url] = result
         self.total_reputation_scores = self.total_reputation_scores + u256(1) if hasattr(self, 'total_reputation_scores') else u256(1)
@@ -1791,12 +1773,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.outreach_cache[content_hash] = result
         self.total_outreach_drafts = self.total_outreach_drafts + u256(1)
@@ -1855,12 +1836,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.readiness_cache[content_hash] = result
         self.total_readiness_gates = self.total_readiness_gates + u256(1)
@@ -1929,12 +1909,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.job_rank_cache[rank_hash] = result
         self.total_job_rankings = self.total_job_rankings + u256(1)
@@ -1984,12 +1963,11 @@ class CVPilotEvaluator(gl.Contract):
         }
 
         def _run():
-            raw = gl.nondet.exec_prompt(prompt)
+            raw = gl.nondet.exec_prompt(prompt + _COMPACT)
             return json.dumps(_parse(str(raw), _fb), sort_keys=True)
 
-        result = gl.eq_principle.prompt_comparative(
+        result = gl.eq_principle.prompt_non_comparative(
             _run,
-            _SOFT_JSON_CRITERIA,
         )
         self.weak_bullet_cache[content_hash] = result
         self.total_weak_bullet_rewrites = self.total_weak_bullet_rewrites + u256(1)
@@ -2035,9 +2013,11 @@ class CVPilotEvaluator(gl.Contract):
                 "overall_verdict": "inclusive", "summary": "",
             }
             def _bias():
-                raw = gl.nondet.exec_prompt(_bias_p)
+                raw = gl.nondet.exec_prompt(_bias_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_bias), sort_keys=True)
-            bias_result = gl.eq_principle.prompt_comparative(_bias, _SOFT_JSON_CRITERIA)
+            bias_result = gl.eq_principle.prompt_non_comparative(
+            _bias,
+        )
             self.bias_analyses[bias_key] = bias_result
             self.total_bias_analyses = self.total_bias_analyses + u256(1)
 
@@ -2058,9 +2038,11 @@ class CVPilotEvaluator(gl.Contract):
                 "summary": "",
             }
             def _wb():
-                raw = gl.nondet.exec_prompt(_wb_p)
+                raw = gl.nondet.exec_prompt(_wb_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_wb), sort_keys=True)
-            wb_result = gl.eq_principle.prompt_comparative(_wb, _SOFT_JSON_CRITERIA)
+            wb_result = gl.eq_principle.prompt_non_comparative(
+            _wb,
+        )
             self.weak_bullet_cache[wb_key] = wb_result
             self.total_weak_bullet_rewrites = self.total_weak_bullet_rewrites + u256(1)
 
@@ -2082,9 +2064,11 @@ class CVPilotEvaluator(gl.Contract):
                 "connection_request_template": "", "summary": "",
             }
             def _li():
-                raw = gl.nondet.exec_prompt(_li_p)
+                raw = gl.nondet.exec_prompt(_li_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_li), sort_keys=True)
-            li_result = gl.eq_principle.prompt_comparative(_li, _SOFT_JSON_CRITERIA)
+            li_result = gl.eq_principle.prompt_non_comparative(
+            _li,
+        )
             self.linkedin_cache[li_key] = li_result
             self.total_linkedin_analyses = self.total_linkedin_analyses + u256(1)
 
@@ -2107,9 +2091,11 @@ class CVPilotEvaluator(gl.Contract):
                 "verdict_rationale": "", "summary": "",
             }
             def _rg():
-                raw = gl.nondet.exec_prompt(_rg_p)
+                raw = gl.nondet.exec_prompt(_rg_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_rg), sort_keys=True)
-            rg_result = gl.eq_principle.prompt_comparative(_rg, _SOFT_JSON_CRITERIA)
+            rg_result = gl.eq_principle.prompt_non_comparative(
+            _rg,
+        )
             self.readiness_cache[rg_key] = rg_result
             self.total_readiness_gates = self.total_readiness_gates + u256(1)
 
@@ -2131,9 +2117,11 @@ class CVPilotEvaluator(gl.Contract):
                 "optimal_send_time_tip": "", "summary": "",
             }
             def _oa():
-                raw = gl.nondet.exec_prompt(_oa_p)
+                raw = gl.nondet.exec_prompt(_oa_p + _COMPACT)
                 return json.dumps(_parse(str(raw), _fb_oa), sort_keys=True)
-            oa_result = gl.eq_principle.prompt_comparative(_oa, _SOFT_JSON_CRITERIA)
+            oa_result = gl.eq_principle.prompt_non_comparative(
+            _oa,
+        )
             self.outreach_cache[oa_key] = oa_result
             self.total_outreach_drafts = self.total_outreach_drafts + u256(1)
 

@@ -1,28 +1,10 @@
 # v0.2.16
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
-#
-# CVPilotEvaluator v1.0.0  –  Production
-# Reference: https://skills.genlayer.com/
-#
-# GenLayer schema rules (from genvm source — runners/genlayer-py-std):
-#   1. NO "from __future__ import annotations" — schema generator inspects
-#      annotations eagerly at class-definition time; lazy strings break it.
-#   2. Every @gl.public.view / @gl.public.write parameter MUST have a type
-#      annotation that the schema generator can resolve (str, int, bool, u256,
-#      Address, etc.).  Private helpers are excluded from schema generation.
-#   3. Storage fields must use only: TreeMap[K,V], DynArray[T], Array[T,N],
-#      u8..u256, i8..i256, str, bool, Address, bigint, Lazy, Keccak256.
-#   4. Bare gl.nondet.exec_prompt() inside a @gl.public.write body is
-#      forbidden (SystemError 6).  Wrap every LLM call in a nested def and
-#      pass it to gl.eq_principle.prompt_comparative / prompt_non_comparative.
 
 import json
 import re
 
 from genlayer import *
-
-_CONTRACT_VERSION = "2.1.0"
-_CONTRACT_ADDRESS = "0x1df327FcA00d56dabBa11F8de81F71F2679A29aa"
 
 # ── Scoring weights (must sum to 100) ────────────────────────────────────────
 _W_CV       = 30
